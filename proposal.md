@@ -21,4 +21,4 @@ For my major project, I will be developing a 2d platformer game inspired by the 
 - **Abilities**: Actual abilities like fire, ice and flying using power-ups apart from the basic health increasing one.
 - **Final Boss Fight**: A boss fight at the end of the level(s) where the 'boss' is more interactive with the player and is smater in dodging and attacking.
 - **A mini map**: that tells me where I am in the level
-- **A Two-Player fuctionality**: An attempt to integrate multiplayer functionality in the game.
+- **A Two-Player functionality**: An attempt to integrate multiplayer functionality in the game.
