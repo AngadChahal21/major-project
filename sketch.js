@@ -6,7 +6,7 @@
 // - describe what you did to take this project "above and beyond"
 
 
-let PARTICLE_SIZE = 10;
+let PARTICLE_SIZE = 15;
 let menuBackground;
 let mainBackground;
 let p;
@@ -40,18 +40,19 @@ function setup() {
 }
 
 function draw() {
-  background(menuBackground);
-  circle(mouseX, mouseY, 100);
+  background(0);
+  //background(menuBackground);
   for(let particle of particles){
+    particle.update();
     particle.display();
   }
 }
 
 function makeParticles(){
-  for(let i = 0; i < height; i+=10){
-    for(let j = 0; j < width; j+=10){
+  for(let i = 0; i < height*15; i+=15){
+    for(let j = 0; j < width*15; j+=15){
       let color = menuBackground.get(i,j);
-      particles.push(new Particle(i,j,color));
+      particles.push(new Particle(i + 10, j - 150, color));
     }
   }
 }
