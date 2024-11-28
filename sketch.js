@@ -12,15 +12,37 @@ let mainBackground;
 let p;
 let particles = [];
 
+
+//////////////////
+let GameState = "startScreen";
+
 class Particle{
   constructor(x, y, color){
     this.x = x;
     this. y = y;
     this.color = color;
+    this.targetX = x;
+    this.targetY = y;
   }
 
   update(){
+    let currentParticle = createVector(this.x, this.y);
+    let mouseParticle = createVector(mouseX, mouseY);
+    //let targetParticle = createVector(this.targetX, this.targetY);
+    let totalForce = createVector(0,0);
 
+    let mouseToCurrent = p5.Vector.sub(currentParticle, mouseParticle);
+    let distanceFromMouse = mouseToCurrent.mag();
+
+    if(distanceFromMouse < 100){
+      let repulsion = map(distanceFromMouse, 100, 0, 1, 5);
+      mouseToCurrent.setMag(repulsion);
+    }
+
+    totalForce.add(mouseToCurrent);
+
+    this.x += totalForce.x;
+    this.y += totalForce.y; 
   }
 
   display(){
