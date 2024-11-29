@@ -6,15 +6,19 @@
 // - describe what you did to take this project "above and beyond"
 
 
+//home menu
 let PARTICLE_SIZE = 15;
 let menuBackground;
 let mainBackground;
 let p;
 let particles = [];
 
-
-//////////////////
 let GameState = "startScreen";
+
+// Images 
+let grassImage, waterImage, coinsImage, characterImage;
+
+//
 
 class Particle{
   constructor(x, y, color){
@@ -25,26 +29,30 @@ class Particle{
     this.targetY = y;
   }
 
+  //mouse interaction
   update(){
+    //defining vectors 
     let currentParticle = createVector(this.x, this.y);
     let mouseParticle = createVector(mouseX, mouseY);
-    //let targetParticle = createVector(this.targetX, this.targetY);
     let totalForce = createVector(0,0);
 
+    //defining distances
     let mouseToCurrent = p5.Vector.sub(currentParticle, mouseParticle);
     let distanceFromMouse = mouseToCurrent.mag();
 
+    //checking for required distance
     if(distanceFromMouse < 100){
       let repulsion = map(distanceFromMouse, 100, 0, 1, 5);
       mouseToCurrent.setMag(repulsion);
     }
 
+    //adding mouse repulsion effect
     totalForce.add(mouseToCurrent);
-
     this.x += totalForce.x;
     this.y += totalForce.y; 
   }
 
+  //display particle image
   display(){
     fill(this.color);
     noStroke;
@@ -70,6 +78,7 @@ function draw() {
   }
 }
 
+//pushing particles for the home menu
 function makeParticles(){
   for(let i = 0; i < height*15; i+=15){
     for(let j = 0; j < width*15; j+=15){
