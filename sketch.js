@@ -62,20 +62,23 @@ class Particle{
 
 function preload(){
   menuBackground = loadImage('./pictures/menu-background.jpeg');
+  mainBackground = loadImage('./tileset/1Tiles/ground-tile.png');
+  waterImage = loadImage('./tileset/1Tiles/water.png');
 }
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
   makeParticles();
+  
 }
 
 function draw() {
-  background(0);
+  background();
   //background(menuBackground);
-  for(let particle of particles){
-    particle.update();
-    particle.display();
-  }
+  //for(let particle of particles){
+    //particle.update();
+    //particle.display();
+  //}
 }
 
 //pushing particles for the home menu
