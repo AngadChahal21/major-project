@@ -16,9 +16,14 @@ let particles = [];
 let GameState = "startScreen";
 
 // Images 
-let grassImage, waterImage, waterBlockImage, coinsImage, characterImage;
+let grassImage, coinsImage, characterImage;
+let waterBlockImage, waterContinuousImage, waterLeftEdgeImage, waterRightEdgeImage;
+
+//dimensions 
 let grassW, grassH, waterW, waterH;
-let ground, water, coins, character;
+
+//groups 
+let ground, water, waterLeft, waterRight, waterCont;
 
 let tilemap, tilemap2;
 
@@ -67,6 +72,9 @@ function preload(){
   mainBackground = loadImage('./tileset/2Background/Background.png');
 
   waterBlockImage = loadImage('./tileset/1Tiles/singleWater.png');
+  waterLeftEdgeImage = loadImage('./tileset/1Tiles/water-left-edge.png');
+  waterRightEdgeImage = loadImage('./tileset/1Tiles/water-right-edge.png');
+  waterContinuousImage = loadImage('./tileset/1Tiles/water-continuous.png');
   grassImage =  loadImage('./tileset/1Tiles/groundTile.png');
 
 }
@@ -83,6 +91,15 @@ function setup() {
   waterBlockImage.width = 100;
   waterBlockImage.height = 100;
 
+  waterLeftEdgeImage.width = 100;
+  waterLeftEdgeImage.height = 100;
+
+  waterRightEdgeImage.width = 100;
+  waterRightEdgeImage.height = 100;
+
+  waterContinuousImage.width = 100;
+  waterContinuousImage.height = 100;
+
   ground = new Group();
   ground.layer = 0;
   ground.collider = "static";
@@ -95,24 +112,42 @@ function setup() {
   water.img = waterBlockImage;
   water.tile = 'w';
 
+  waterLeft = new Group();
+  waterLeft.layer = 0;
+  waterLeft.collider = 'static';
+  waterLeft.img = waterLeftEdgeImage;
+  waterLeft.tile = 'l';
+
+  waterRight = new Group();
+  waterRight.layer = 0;
+  waterRight.collider = 'static';
+  waterRight.img = waterRightEdgeImage;
+  waterRight.tile = 'r';
+
+  waterCont = new Group();
+  waterCont.layer = 0;
+  waterCont.collider = 'static';
+  waterCont.img = waterContinuousImage;
+  waterCont.tile = 'c';
+
   imageMode(CORNER); 
 
   tilemap = new Tiles([
-    '............',
-    '............',
-    '............',
-    '............',
-    '............',
-    '............'
+    '............................',
+    '............................',
+    '............................',
+    '............................',
+    '............................',
+    '............................'
   ],grassImage.width / 2,height - grassImage.height / 2 * 16,grassImage.width, grassImage.height * 1.5);
  
   tilemap2 = new Tiles([
-    '............',
-    '............',
-    '............',
-    '............',
-    '...........',
-    'ggwgwg......'
+    '.............................',
+    '.............................',
+    '.............................',
+    '.............................',
+    '.............................',
+    'gwglccrglcrgg................'
   ],grassImage.width / 2,height - grassImage.height / 2 * 11,grassImage.width, grassImage.height);
 
 }
