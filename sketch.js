@@ -20,7 +20,7 @@ let grassImage, waterImage, waterBlockImage, coinsImage, characterImage;
 let grassW, grassH, waterW, waterH;
 let ground, water, coins, character;
 
-let tilemap;
+let tilemap, tilemap2;
 
 class Particle{
   constructor(x, y, color){
@@ -98,14 +98,23 @@ function setup() {
   imageMode(CORNER); 
 
   tilemap = new Tiles([
-    'ggggggwgg...',
     '............',
     '............',
     '............',
-    'g  ...........',
-    '...........'
-  ],grassImage.width / 2,height - grassImage.height / 2 * 15,grassImage.width, grassImage.height * 1.5);
+    '............',
+    '............',
+    '............'
+  ],grassImage.width / 2,height - grassImage.height / 2 * 16,grassImage.width, grassImage.height * 1.5);
  
+  tilemap2 = new Tiles([
+    '............',
+    '............',
+    '............',
+    '............',
+    '...........',
+    'ggwgwg......'
+  ],grassImage.width / 2,height - grassImage.height / 2 * 11,grassImage.width, grassImage.height);
+
 }
 
 function draw() {
