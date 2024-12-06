@@ -16,14 +16,15 @@ let particles = [];
 let GameState = "startScreen";
 
 // Images 
-let grassImage, coinsImage, characterImage;
-let waterBlockImage, waterContinuousImage, waterLeftEdgeImage, waterRightEdgeImage;
+let grassImage, soilImage; // grass tiles
+let waterBlockImage, waterContinuousImage, waterLeftEdgeImage, waterRightEdgeImage; // water tiles
+let coinsImage;
 
 //dimensions 
 let grassW, grassH, waterW, waterH;
 
 //groups 
-let ground, water, waterLeft, waterRight, waterCont;
+let ground, soil, water, waterLeft, waterRight, waterCont, coins;
 
 let tilemap, tilemap2;
 
@@ -68,14 +69,22 @@ class Particle{
 }
 
 function preload(){
+  //backdrops
   menuBackground = loadImage('./pictures/menu-background.jpeg');
   mainBackground = loadImage('./tileset/2Background/Background.png');
 
+  //water
   waterBlockImage = loadImage('./tileset/1Tiles/singleWater.png');
   waterLeftEdgeImage = loadImage('./tileset/1Tiles/water-left-edge.png');
   waterRightEdgeImage = loadImage('./tileset/1Tiles/water-right-edge.png');
   waterContinuousImage = loadImage('./tileset/1Tiles/water-continuous.png');
+
+  ///ground
   grassImage =  loadImage('./tileset/1Tiles/groundTile.png');
+  soilImage = loadImage('./tileset/1Tiles/soil.png');
+
+  //coins
+  coinsImage = loadImage('./tileset/3Animated Objects/coinss.png');
 
 }
 
@@ -85,9 +94,14 @@ function setup() {
   world.gravity.y = 10;
   allSprites.pixelPerfect = true;
 
+  //ground tiles dimensions
   grassImage.width = 100;
   grassImage.height = 100;
 
+  soilImage.width = 100;
+  soilImage.height = 100;
+
+  // water tiles dimensions
   waterBlockImage.width = 100;
   waterBlockImage.height = 100;
 
@@ -100,54 +114,80 @@ function setup() {
   waterContinuousImage.width = 100;
   waterContinuousImage.height = 100;
 
+  //coins dimensions
+  coinsImage.width = 200;
+  coinsImage.height = 50;
+
+  //groups 
+
+  //grass
   ground = new Group();
   ground.layer = 0;
   ground.collider = "static";
   ground.img = grassImage;
   ground.tile = 'g';
 
+  //ground + water  + ground block
   water = new Group();
   water.layer = 0;
   water.collider = 'static';
   water.img = waterBlockImage;
   water.tile = 'w';
 
+  //ground + water (left)
   waterLeft = new Group();
   waterLeft.layer = 0;
   waterLeft.collider = 'static';
   waterLeft.img = waterLeftEdgeImage;
   waterLeft.tile = 'l';
 
+  //ground + water (right)
   waterRight = new Group();
   waterRight.layer = 0;
   waterRight.collider = 'static';
   waterRight.img = waterRightEdgeImage;
   waterRight.tile = 'r';
 
+  //only water
   waterCont = new Group();
   waterCont.layer = 0;
   waterCont.collider = 'static';
   waterCont.img = waterContinuousImage;
   waterCont.tile = 'c';
 
+  //just soil
+  soil = new Group();
+  soil.layer = 0;
+  soil.collider = 'static';
+  soil.img = soilImage;
+  soil.tile = 's';
+
+  //coins
+  coins = new Group();
+  coins.collider = 'static';
+  coins.spriteSheet = coinsImage;
+  coins.addAni({h:50, w:50, row: 0, frames: 4});
+  coins.tile = 'C';
+  
+
   imageMode(CORNER); 
 
   tilemap = new Tiles([
     '............................',
     '............................',
-    '............................',
-    '............................',
-    '............................',
+    '............g..............',
+    '........ggg.................',
+    '...........................',
     '............................'
   ],grassImage.width / 2,height - grassImage.height / 2 * 16,grassImage.width, grassImage.height * 1.5);
  
   tilemap2 = new Tiles([
     '.............................',
+    '........CCC....................',
     '.............................',
-    '.............................',
-    '.............................',
-    '.............................',
-    'gwglccrglcrgg................'
+    '.CCCC........................',
+    'gwglccrglcr..................',
+    'sssssssssss..................'
   ],grassImage.width / 2,height - grassImage.height / 2 * 11,grassImage.width, grassImage.height);
 
 }
