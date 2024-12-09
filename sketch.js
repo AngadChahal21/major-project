@@ -89,7 +89,7 @@ function preload(){
 }
 
 function setup() {
-  createCanvas(windowWidth, windowHeight);
+  createCanvas(windowWidth, windowHeight, "pixelated x10");
   makeParticles();
   world.gravity.y = 10;
   allSprites.pixelPerfect = true;
@@ -166,7 +166,7 @@ function setup() {
   coins = new Group();
   coins.collider = 'static';
   coins.spriteSheet = coinsImage;
-  coins.addAni({h:50, w:50, row: 0, frames: 4});
+  coins.addAni({h:50, w:50, row: 0, frames: 4, frameDelay: 8});
   coins.tile = 'C';
   
 
@@ -195,7 +195,8 @@ function setup() {
 function draw() {
   background(mainBackground);
   fill(0, 120);
-  rect(0, 0, width * 2, height * 2);
+  //rect(0, 0, width * 2, height * 2);
+  
   //background(menuBackground);
   //for(let particle of particles){
     //particle.update();
