@@ -15,16 +15,22 @@ let particles = [];
 
 let GameState = "startScreen";
 
-// Images 
+// Block images 
 let grassImage, soilImage; // grass tiles
 let waterBlockImage, waterContinuousImage, waterLeftEdgeImage, waterRightEdgeImage; // water tiles
 let coinsImage;
+
+//Character images
+let characterIdle;
 
 //dimensions 
 let grassW, grassH, waterW, waterH;
 
 //groups 
 let ground, soil, water, waterLeft, waterRight, waterCont, coins;
+
+//
+let mainCharacter;
 
 let tilemap, tilemap2;
 
@@ -84,7 +90,10 @@ function preload(){
   soilImage = loadImage('./tileset/1Tiles/soil.png');
 
   //coins
-  coinsImage = loadImage('./tileset/3Animated Objects/coinss.png');
+  coinsImage = loadImage('./tileset/3Animated Objects/goldCoins.png');
+
+  //character
+  characterIdle = loadImage('./characters/1 Biker/Biker_idle.png');
 
 }
 
@@ -94,10 +103,9 @@ function setup() {
   world.gravity.y = 10;
   allSprites.pixelPerfect = true;
 
-  //ground tiles dimensions
+  //tile dimensions
   grassImage.width = 100;
   grassImage.height = 100;
-
   soilImage.width = 100;
   soilImage.height = 100;
 
@@ -115,8 +123,12 @@ function setup() {
   waterContinuousImage.height = 100;
 
   //coins dimensions
-  coinsImage.width = 200;
-  coinsImage.height = 50;
+  coinsImage.width = 240;
+  coinsImage.height = 48;
+
+  //character dimensions;
+  characterIdle.width = 768;
+  characterIdle.height = 192;
 
   //groups 
 
@@ -166,12 +178,25 @@ function setup() {
   coins = new Group();
   coins.collider = 'static';
   coins.spriteSheet = coinsImage;
-  coins.addAni({h:50, w:50, row: 0, frames: 4, frameDelay: 8});
+  coins.addAni({h:58, w:48, row: 0, frames: 4, frameDelay: 8});
   coins.tile = 'C';
+
+  //character
+  mainCharacter = new Sprite();
+  mainCharacter.layer = 1;
+  mainCharacter.collider = 'dynamic';
+  mainCharacter.x = 100;
+  mainCharacter.y = 200;
+  mainCharacter.spriteSheet = characterIdle;
+  mainCharacter.addAni({h:192, w:192, row:0, frames: 4, frameDelay: 8});
+  mainCharacter.friction = 0;
+
   
+
 
   imageMode(CORNER); 
 
+  //tilemap with 1.5x tileset vertical spacing 
   tilemap = new Tiles([
     '............................',
     '............................',
@@ -181,13 +206,14 @@ function setup() {
     '............................'
   ],grassImage.width / 2,height - grassImage.height / 2 * 16,grassImage.width, grassImage.height * 1.5);
  
+  //tilemap with no vertical spacing between tiles 
   tilemap2 = new Tiles([
-    '.............................',
+    '............C................',
     '........CCC....................',
     '.............................',
-    '.CCCC........................',
+    '..C..........................',
     'gwglccrglcr..................',
-    'sssssssssss..................'
+    'sssssssssss..................',
   ],grassImage.width / 2,height - grassImage.height / 2 * 11,grassImage.width, grassImage.height);
 
 }
@@ -199,7 +225,7 @@ function draw() {
   
   //background(menuBackground);
   //for(let particle of particles){
-    //particle.update();
+   //particle.update();
     //particle.display();
   //}
 }
