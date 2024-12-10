@@ -35,8 +35,12 @@ let ground, soil, water, waterLeft, waterRight, waterCont, coins;
 //Characters
 let mainCharacter;
 
+//
+let playerRun, playerJump;
+
 //tilemaps
 let tilemap, tilemap2;
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -110,6 +114,7 @@ function setup() {
   makeParticles();
   world.gravity.y = 10;
   allSprites.pixelPerfect = true;
+  allSprites.autoCull = false;
 
   //tile dimensions
   grassImage.width = 100;
@@ -206,10 +211,11 @@ function setup() {
 
   //animations 
   mainCharacter.addAnimation('idle', characterIdle,{h:192, w:192, row:0, frames:4, frameDelay:8}); //Standing/Idle
-  mainCharacter.addAnimation('running', characterRun,{h:192, w:192, row:0, frames:6, frameDelay:6}); //Running
-  mainCharacter.addAnimation('jumping', characterJump,{h:192, w:192, row:0, frames:4, frameDelay:8}); //Jumping
+  playerRun = mainCharacter.addAnimation('running', characterRun,{h:192, w:192, row:0, frames:6, frameDelay:6}); //Running
+  playerJump = mainCharacter.addAnimation('jumping', characterJump,{h:192, w:192, row:0, frames:4, frameDelay:8}); //Jumping
   
   mainCharacter.ani = 'idle';
+  mainCharacter.rotationLock = true;
   ///////////////////////////////////////////////////////////////////////////////////////
 
   //mainCharacter.spriteSheet = characterIdle;
@@ -240,13 +246,13 @@ function setup() {
     '.............................',
     '.............................',
     '.............................',
+    '............CCCC.............',
+    '............gggg.............',
     '.............................',
     '.............................',
-    '..........CCCC...............',
-    '..........gggg...............',
-    '.............................',
-    'gwglccrglcr..................',
-    'sssssssssss..................',
+    '.....CCC.....................',
+    'gggggggwglccrglcr............',
+    'sssssssssssssssss............',
   ],grassImage.width / 2,height - grassImage.height / 2 * 27,grassImage.width, grassImage.height);
 
 }
@@ -254,26 +260,58 @@ function setup() {
 function draw() {
   background(mainBackground);
 
-  if(kb.pressing('up')){
-    mainCharacter.ani = 'jumping';
-    mainCharacter.vel.y = -4.5;
+  // if player is touching any of the ground blocks, only then will he able to jump
+  if(mainCharacter.colliding(water) || mainCharacter.colliding(waterLeft) || mainCharacter.colliding(waterRight) || mainCharacter.colliding(ground) || mainCharacter.colliding(waterCont)){
+    if(kb.presses('up')){
+      mainCharacter.ani = 'jumping';
+      mainCharacter.vel.y = -7;
+    }
   }
 
+  //if player is in contact with water, slow him down
+  if(mainCharacter.colliding(water) < 10 || mainCharacter.colliding(waterLeft) || mainCharacter.colliding(waterRight) || mainCharacter.colliding(waterCont)){
+    mainCharacter.friction = 20;
+  }
+
+  // remove the coin if the player touches it
+  if(mainCharacter.overlaps(coins)){
+    coins.remove();
+  }
+
+  ///left arrow & 'A'
   if(kb.pressing('left')){
     mainCharacter.ani = 'running';
-    mainCharacter.vel.x = -2.5;
     mainCharacter.mirror.x = true;
+    if(kb.pressing('shift')){
+      mainCharacter.vel.x = -4.5;
+      playerRun.frameDelay = 4;
+    }
+    else{
+      mainCharacter.vel.x = -2.5;
+      playerRun.frameDelay = 6;
+    }
   }
 
+  //right arrow & 'D'
   else if(kb.pressing('right')){
     mainCharacter.ani = 'running';
-    mainCharacter.vel.x = 2.5;
-    mainCharacter.mirror.x = false;
+    mainCharacter.mirror.dx = false;
+    if(kb.pressing('shift')){
+      mainCharacter.vel.x = 4.5;
+      playerRun.frameDelay = 4;
+    }
+    else{
+      mainCharacter.vel.x = 2.5;
+      playerRun.frameDelay = 6;
+    }
   }
 
   else{
     mainCharacter.ani = 'idle';
   }
+
+  camera.x = mainCharacter.x;   
+
 
 
 
