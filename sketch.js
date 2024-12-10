@@ -9,19 +9,22 @@
 //home menu
 let PARTICLE_SIZE = 15;
 let menuBackground;
-let mainBackground;
 let p;
 let particles = [];
 
-let GameState = "startScreen";
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Block images 
+//main game
+let GameState = "startScreen";
+let mainBackground;
+
+// Tile images 
 let grassImage, soilImage; // grass tiles
 let waterBlockImage, waterContinuousImage, waterLeftEdgeImage, waterRightEdgeImage; // water tiles
-let coinsImage;
+let coinsImage; //coins tiles
 
 //Character images
-let characterIdle;
+let characterIdle, characterRun, characterJump;
 
 //dimensions 
 let grassW, grassH, waterW, waterH;
@@ -29,10 +32,13 @@ let grassW, grassH, waterW, waterH;
 //groups 
 let ground, soil, water, waterLeft, waterRight, waterCont, coins;
 
-//
+//Characters
 let mainCharacter;
 
+//tilemaps
 let tilemap, tilemap2;
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class Particle{
   constructor(x, y, color){
@@ -94,6 +100,8 @@ function preload(){
 
   //character
   characterIdle = loadImage('./characters/1 Biker/Biker_idle.png');
+  characterRun = loadImage('./characters/1 Biker/Biker_run.png');
+  characterJump = loadImage('./characters/1 Biker/Biker_jump.png');
 
 }
 
@@ -106,6 +114,7 @@ function setup() {
   //tile dimensions
   grassImage.width = 100;
   grassImage.height = 100;
+
   soilImage.width = 100;
   soilImage.height = 100;
 
@@ -127,8 +136,11 @@ function setup() {
   coinsImage.height = 48;
 
   //character dimensions;
-  characterIdle.width = 768;
-  characterIdle.height = 192;
+  characterIdle.width = 768; characterIdle.height = 192;
+  characterRun.width = 1152; characterRun.height = 192;
+  characterJump.width = 768; characterJump.height = 192;
+
+
 
   //groups 
 
@@ -182,14 +194,27 @@ function setup() {
   coins.tile = 'C';
 
   //character
+  ///////////////////////////////////////////////////////////////////////////////////////
   mainCharacter = new Sprite();
   mainCharacter.layer = 1;
   mainCharacter.collider = 'dynamic';
+  mainCharacter.friction = 1;
+
+  //initial location
   mainCharacter.x = 100;
   mainCharacter.y = 200;
-  mainCharacter.spriteSheet = characterIdle;
-  mainCharacter.addAni({h:192, w:192, row:0, frames: 4, frameDelay: 8});
-  mainCharacter.friction = 0;
+
+  //animations 
+  mainCharacter.addAnimation('idle', characterIdle,{h:192, w:192, row:0, frames:4, frameDelay:8}); //Standing/Idle
+  mainCharacter.addAnimation('running', characterRun,{h:192, w:192, row:0, frames:6, frameDelay:6}); //Running
+  mainCharacter.addAnimation('jumping', characterJump,{h:192, w:192, row:0, frames:4, frameDelay:8}); //Jumping
+  
+  mainCharacter.ani = 'idle';
+  ///////////////////////////////////////////////////////////////////////////////////////
+
+  //mainCharacter.spriteSheet = characterIdle;
+  //mainCharacter.addAni({h:192, w:192, row:0, frames: 4, frameDelay: 8});
+  
 
   
 
@@ -200,26 +225,85 @@ function setup() {
   tilemap = new Tiles([
     '............................',
     '............................',
-    '............g..............',
-    '........ggg.................',
-    '...........................',
+    '............................',
+    '............................',
+    '............................',
     '............................'
   ],grassImage.width / 2,height - grassImage.height / 2 * 16,grassImage.width, grassImage.height * 1.5);
  
   //tilemap with no vertical spacing between tiles 
   tilemap2 = new Tiles([
-    '............C................',
-    '........CCC....................',
     '.............................',
-    '..C..........................',
+    '.............................',
+    '.............................',
+    '.............................',
+    '.............................',
+    '.............................',
+    '.............................',
+    '.............................',
+    '.............................',
+    '.............................',
+    '..........gggg...............',
+    '.............................',
     'gwglccrglcr..................',
     'sssssssssss..................',
-  ],grassImage.width / 2,height - grassImage.height / 2 * 11,grassImage.width, grassImage.height);
+  ],grassImage.width / 2,height - grassImage.height / 2 * 27,grassImage.width, grassImage.height);
 
 }
 
 function draw() {
   background(mainBackground);
+
+  if(kb.pressing('up')){
+    mainCharacter.ani = 'jumping';
+    mainCharacter.vel.y = -4.5;
+  }
+
+  if(kb.pressing('left')){
+    mainCharacter.ani = 'running';
+    mainCharacter.vel.x = -2.5;
+    mainCharacter.mirror.x = true;
+  }
+
+  else if(kb.pressing('right')){
+    mainCharacter.ani = 'running';
+    mainCharacter.vel.x = 2.5;
+    mainCharacter.mirror.x = false;
+  }
+
+  else{
+    mainCharacter.ani = 'idle';
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   fill(0, 120);
   //rect(0, 0, width * 2, height * 2);
   
