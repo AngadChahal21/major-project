@@ -93,10 +93,10 @@ function preload(){
   waterBlockImage = loadImage('./tileset/1Tiles/singleWater.png');
   waterLeftEdgeImage = loadImage('./tileset/1Tiles/water-left-edge.png');
   waterRightEdgeImage = loadImage('./tileset/1Tiles/water-right-edge.png');
-  waterContinuousImage = loadImage('./tileset/1Tiles/water-continuous.png');
+  waterContinuousImage = loadImage('./tileset/1Tiles/Tile_40.png');
 
   ///ground
-  grassImage =  loadImage('./tileset/1Tiles/groundTile.png');
+  grassImage =  loadImage('./tileset/1Tiles/ground-tile.png');
   soilImage = loadImage('./tileset/1Tiles/soil.png');
 
   //coins
@@ -239,20 +239,20 @@ function setup() {
  
   //tilemap with no vertical spacing between tiles 
   tilemap2 = new Tiles([
-    '.............................',
-    '.............................',
-    '.............................',
-    '.............................',
-    '.............................',
-    '.............................',
-    '.............................',
-    '............CCCC.............',
-    '............gggg.............',
-    '.............................',
-    '.............................',
-    '.....CCC.....................',
-    'gggggggwglccrglcr............',
-    'sssssssssssssssss............',
+    '............................................................',
+    '............................................................',
+    '............................................................',
+    '............................................................',
+    '............................................................',
+    '............................................................',
+    '.......................ggggggggg............................',
+    '............CCCC......gsssssssss............................',
+    '............gggg.....gsssssssssss...........................',
+    '....................gssssssssssss...........................',
+    '...................gsssssssssssss............................',
+    '.....CCC..........gssssssssssssss...........................',
+    'gggggggwglccrglcrggsssssssssssssslcccccrgggggggggggggggggggg',
+    'ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss',
   ],grassImage.width / 2,height - grassImage.height / 2 * 27,grassImage.width, grassImage.height);
 
 }
@@ -269,7 +269,7 @@ function draw() {
   }
 
   //if player is in contact with water, slow him down
-  if(mainCharacter.colliding(water) < 10 || mainCharacter.colliding(waterLeft) || mainCharacter.colliding(waterRight) || mainCharacter.colliding(waterCont)){
+  if(mainCharacter.colliding(water) < 10 || mainCharacter.colliding(waterCont)){
     mainCharacter.friction = 20;
   }
 
@@ -285,24 +285,48 @@ function draw() {
     if(kb.pressing('shift')){
       mainCharacter.vel.x = -4.5;
       playerRun.frameDelay = 4;
+      if(mainCharacter.colliding(water) || mainCharacter.colliding(waterCont)){
+        mainCharacter.vel.x = -1.5;
+      }
+      else{
+        mainCharacter.vel.x = -4.5;
+      }
     }
     else{
       mainCharacter.vel.x = -2.5;
       playerRun.frameDelay = 6;
+      if(mainCharacter.colliding(water) || mainCharacter.colliding(waterCont)){
+        mainCharacter.vel.x = -1.5;
+      }
+      else{
+        mainCharacter.vel.x = -2.5;
+      }
     }
   }
 
   //right arrow & 'D'
   else if(kb.pressing('right')){
     mainCharacter.ani = 'running';
-    mainCharacter.mirror.dx = false;
+    mainCharacter.mirror.x = false;
     if(kb.pressing('shift')){
       mainCharacter.vel.x = 4.5;
       playerRun.frameDelay = 4;
+      if(mainCharacter.colliding(water) || mainCharacter.colliding(waterCont)){
+        mainCharacter.vel.x = 1.5;
+      }
+      else{
+        mainCharacter.vel.x = 4.5;
+      }
     }
     else{
       mainCharacter.vel.x = 2.5;
       playerRun.frameDelay = 6;
+      if(mainCharacter.colliding(water) || mainCharacter.colliding(waterCont)){
+        mainCharacter.vel.x = 1.5;
+      }
+      else{
+        mainCharacter.vel.x = 2.5;
+      }
     }
   }
 
