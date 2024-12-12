@@ -24,7 +24,7 @@ let waterBlockImage, waterContinuousImage, waterLeftEdgeImage, waterRightEdgeIma
 let coinsImage; //coins tiles
 
 //Character images
-let characterIdle, characterRun, characterJump;
+let characterIdle, characterRun, characterJump, characterAttack1;
 
 //dimensions 
 let grassW, grassH, waterW, waterH;
@@ -36,7 +36,7 @@ let ground, soil, water, waterLeft, waterRight, waterCont, coins;
 let mainCharacter;
 
 //
-let playerRun, playerJump;
+let playerRun, playerJump, playerAttack1;
 
 //tilemaps
 let tilemap, tilemap2;
@@ -106,6 +106,7 @@ function preload(){
   characterIdle = loadImage('./characters/1 Biker/Biker_idle.png');
   characterRun = loadImage('./characters/1 Biker/Biker_run.png');
   characterJump = loadImage('./characters/1 Biker/Biker_jump.png');
+  characterAttack1 = loadImage('./characters/1 Biker/Biker_attack1.png');
 
 }
 
@@ -144,6 +145,7 @@ function setup() {
   characterIdle.width = 768; characterIdle.height = 192;
   characterRun.width = 1152; characterRun.height = 192;
   characterJump.width = 768; characterJump.height = 192;
+  characterAttack1.width = 1152; characterAttack1.height = 192;
 
 
 
@@ -213,6 +215,7 @@ function setup() {
   mainCharacter.addAnimation('idle', characterIdle,{h:192, w:192, row:0, frames:4, frameDelay:8}); //Standing/Idle
   playerRun = mainCharacter.addAnimation('running', characterRun,{h:192, w:192, row:0, frames:6, frameDelay:6}); //Running
   playerJump = mainCharacter.addAnimation('jumping', characterJump,{h:192, w:192, row:0, frames:4, frameDelay:8}); //Jumping
+  playerAttack1 = mainCharacter.addAnimation('attacking1', characterAttack1, {h:192, w:192, row: 0, frames: 6, frameDelay: 6}); //Basic Attack
   
   mainCharacter.ani = 'idle';
   mainCharacter.rotationLock = true;
@@ -228,14 +231,14 @@ function setup() {
   imageMode(CORNER); 
 
   //tilemap with 1.5x tileset vertical spacing 
-  tilemap = new Tiles([
-    '............................',
-    '............................',
-    '............................',
-    '............................',
-    '............................',
-    '............................'
-  ],grassImage.width / 2,height - grassImage.height / 2 * 16,grassImage.width, grassImage.height * 1.5);
+  // tilemap = new Tiles([
+  //   '............................',
+  //   '............................',
+  //   '............................',
+  //   '............................',
+  //   '............................',
+  //   '............................'
+  // ],grassImage.width / 2,height - grassImage.height / 2 * 16,grassImage.width, grassImage.height * 1.5);
  
   //tilemap with no vertical spacing between tiles 
   tilemap2 = new Tiles([
@@ -269,13 +272,18 @@ function draw() {
   }
 
   //if player is in contact with water, slow him down
-  if(mainCharacter.colliding(water) < 10 || mainCharacter.colliding(waterCont)){
-    mainCharacter.friction = 20;
+  if(mainCharacter.colliding(water) || mainCharacter.colliding(waterCont)){
+   
   }
 
   // remove the coin if the player touches it
   if(mainCharacter.overlaps(coins)){
     coins.remove();
+  }
+
+  //Basic attack
+  if(kb.pressing('space')){
+    mainCharacter.ani = 'attacking1';
   }
 
   ///left arrow & 'A'
@@ -334,7 +342,7 @@ function draw() {
     mainCharacter.ani = 'idle';
   }
 
-  camera.x = mainCharacter.x;   
+  camera.x = mainCharacter.x + 150;   
 
 
 
