@@ -17,6 +17,7 @@ let particles = [];
 //main game
 let GameState = "startScreen";
 let mainBackground;
+let myFont;
 
 // Tile images 
 let grassImage, soilImage; // grass tiles
@@ -35,11 +36,15 @@ let ground, soil, water, waterLeft, waterRight, waterCont, coins;
 //Characters
 let mainCharacter;
 
-//
+//animations
 let playerRun, playerJump, playerAttack1;
 
 //tilemaps
 let tilemap, tilemap2;
+
+
+//stats
+let score = 0;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -107,6 +112,9 @@ function preload(){
   characterRun = loadImage('./characters/1 Biker/Biker_run.png');
   characterJump = loadImage('./characters/1 Biker/Biker_jump.png');
   characterAttack1 = loadImage('./characters/1 Biker/Biker_attack1.png');
+
+  //font
+  let myFont = loadFont('./PolygonPartyFont.ttf');
 
 }
 
@@ -258,10 +266,20 @@ function setup() {
     'ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss',
   ],grassImage.width / 2,height - grassImage.height / 2 * 27,grassImage.width, grassImage.height);
 
+
+  mainCharacter.overlaps(coins,(p,C) =>{
+    C.remove();
+    score++;
+  });
 }
 
 function draw() {
   background(mainBackground);
+
+  //textFont(myFont);
+  fill('white');
+  textSize(30);
+  text('Coins collected: ' + score, width - 350, 50);
 
   // if player is touching any of the ground blocks, only then will he able to jump
   if(mainCharacter.colliding(water) || mainCharacter.colliding(waterLeft) || mainCharacter.colliding(waterRight) || mainCharacter.colliding(ground) || mainCharacter.colliding(waterCont)){
@@ -276,10 +294,7 @@ function draw() {
    
   }
 
-  // remove the coin if the player touches it
-  if(mainCharacter.overlaps(coins)){
-    coins.remove();
-  }
+  
 
   //Basic attack
   if(kb.pressing('space')){
@@ -340,6 +355,11 @@ function draw() {
 
   else{
     mainCharacter.ani = 'idle';
+  }
+
+  if(mainCharacter.y > height){
+    mainCharacter.x  = 100;
+    mainCharacter.y = 200;
   }
 
   camera.x = mainCharacter.x + 150;   
