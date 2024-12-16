@@ -114,7 +114,7 @@ function preload(){
   characterAttack1 = loadImage('./characters/1 Biker/Biker_attack1.png');
 
   //font
-  let myFont = loadFont('./PolygonPartyFont.ttf');
+  myFont = loadFont('./PolygonPartyFont.ttf');
 
 }
 
@@ -276,7 +276,7 @@ function setup() {
 function draw() {
   background(mainBackground);
 
-  //textFont(myFont);
+  textFont(myFont);
   fill('white');
   textSize(30);
   text('Coins collected: ' + score, width - 350, 50);
@@ -289,18 +289,9 @@ function draw() {
     }
   }
 
-  //if player is in contact with water, slow him down
-  if(mainCharacter.colliding(water) || mainCharacter.colliding(waterCont)){
-   
-  }
-
-  
 
   //Basic attack
-  if(kb.pressing('space')){
-    mainCharacter.ani = 'attacking1';
-  }
-
+  
   ///left arrow & 'A'
   if(kb.pressing('left')){
     mainCharacter.ani = 'running';
@@ -352,6 +343,11 @@ function draw() {
       }
     }
   }
+
+  else if(kb.pressing('k')){
+    mainCharacter.ani = 'attacking1';
+  }
+
 
   else{
     mainCharacter.ani = 'idle';
