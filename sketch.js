@@ -19,6 +19,11 @@ let GameState = "startScreen";
 let mainBackground;
 let myFont;
 
+//timer
+let time = 0;
+let LastTimeUpdate = 0;
+let timerDelay = 1000;
+
 // Tile images 
 let grassImage, soilImage; // grass tiles
 let waterBlockImage, waterContinuousImage, waterLeftEdgeImage, waterRightEdgeImage; // water tiles
@@ -260,7 +265,7 @@ function setup() {
     '............CCCC......gsssssssss............................',
     '............gggg.....gsssssssssss...........................',
     '....................gssssssssssss...........................',
-    '...................gsssssssssssss............................',
+    '...................gsssssssssssss...........................',
     '.....CCC..........gssssssssssssss...........................',
     'gggggggwglccrglcrggsssssssssssssslcccccrgggggggggggggggggggg',
     'ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss',
@@ -280,6 +285,12 @@ function draw() {
   fill('white');
   textSize(30);
   text('Coins collected: ' + score, width - 350, 50);
+  text('Time:' + time, 50, 50);
+
+  if(millis() - LastTimeUpdate >= timerDelay){
+    time++;
+    LastTimeUpdate = millis();
+  }
 
   // if player is touching any of the ground blocks, only then will he able to jump
   if(mainCharacter.colliding(water) || mainCharacter.colliding(waterLeft) || mainCharacter.colliding(waterRight) || mainCharacter.colliding(ground) || mainCharacter.colliding(waterCont)){
