@@ -218,7 +218,7 @@ function setup() {
   mainCharacter = new Sprite();
   mainCharacter.layer = 1;
   mainCharacter.collider = 'dynamic';
-  mainCharacter.friction = 1;
+  mainCharacter.friction = 0;
 
   //initial location
   mainCharacter.x = 100;
@@ -244,14 +244,14 @@ function setup() {
   imageMode(CORNER); 
 
   //tilemap with 1.5x tileset vertical spacing 
-  // tilemap = new Tiles([
-  //   '............................',
-  //   '............................',
-  //   '............................',
-  //   '............................',
-  //   '............................',
-  //   '............................'
-  // ],grassImage.width / 2,height - grassImage.height / 2 * 16,grassImage.width, grassImage.height * 1.5);
+  tilemap = new Tiles([
+    '............................',
+    '............................',
+    '............................',
+    '............................',
+    '............................',
+    '............................'
+  ],grassImage.width / 2,height - grassImage.height / 2 * 16,grassImage.width, grassImage.height * 1.5);
  
   //tilemap with no vertical spacing between tiles 
   tilemap2 = new Tiles([
