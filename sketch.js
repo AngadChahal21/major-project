@@ -218,7 +218,9 @@ function setup() {
   mainCharacter = new Sprite();
   mainCharacter.layer = 1;
   mainCharacter.collider = 'dynamic';
-  mainCharacter.friction = 0;
+  mainCharacter.friction.x = 1;
+  mainCharacter.friction.y = 0;
+  mainCharacter.drag.x = 20;
 
   //initial location
   mainCharacter.x = 100;
@@ -268,7 +270,7 @@ function setup() {
     '...................gsssssssssssss...........................',
     '.....CCC..........gssssssssssssss...........................',
     'gggggggwglccrglcrggsssssssssssssslcccccrgggggggggggggggggggg',
-    'ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss',
+    'ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss', 
   ],grassImage.width / 2,height - grassImage.height / 2 * 27,grassImage.width, grassImage.height);
 
 
@@ -276,6 +278,10 @@ function setup() {
     C.remove();
     score++;
   });
+
+  groundSensor = new Sprite();
+  groundSensor.visible = false; 
+  groundSensor.mass = 0.01;
 }
 
 function draw() {
