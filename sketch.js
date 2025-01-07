@@ -18,6 +18,11 @@ let particles = [];
 let GameState = "startScreen";
 let mainBackground;
 let myFont;
+let lives = 3;
+
+///respawn point
+respawnX = 100;
+respawn = 200;
 
 //timer
 let time = 0;
@@ -25,7 +30,7 @@ let LastTimeUpdate = 0;
 let timerDelay = 1000;
 
 // Tile images 
-let grassImage, soilImage; // grass tiles
+let grassImage, soilImage, checkpointImage; // grass tiles
 let waterBlockImage, waterContinuousImage, waterLeftEdgeImage, waterRightEdgeImage; // water tiles
 let coinsImage; //coins tiles
 
@@ -36,7 +41,7 @@ let characterIdle, characterRun, characterJump, characterAttack1;
 let grassW, grassH, waterW, waterH;
 
 //groups 
-let ground, soil, water, waterLeft, waterRight, waterCont, coins;
+let ground, soil, water, waterLeft, waterRight, waterCont, coins, checkpoint;
 
 //Characters
 let mainCharacter;
@@ -108,6 +113,7 @@ function preload(){
   ///ground
   grassImage =  loadImage('./tileset/1Tiles/ground-tile.png');
   soilImage = loadImage('./tileset/1Tiles/soil.png');
+  checkpointImage = loadImage('./tileset/1Tiles/checkpoint.png');
 
   //coins
   coinsImage = loadImage('./tileset/3Animated Objects/goldCoins.png');
@@ -136,6 +142,9 @@ function setup() {
 
   soilImage.width = 100;
   soilImage.height = 100;
+
+  checkpointImage.width = 100;
+  checkpointImage.height = 100;
 
   // water tiles dimensions
   waterBlockImage.width = 100;
@@ -170,6 +179,13 @@ function setup() {
   ground.collider = "static";
   ground.img = grassImage;
   ground.tile = 'g';
+
+  //checkpoint
+  checkpoint = new Group();
+  checkpoint.layer = 0;
+  checkpoint.collider = "static";
+  checkpoint.img = checkpointImage;
+  checkpoint.tile = 'z';
 
   //ground + water  + ground block
   water = new Group();
@@ -245,15 +261,15 @@ function setup() {
 
   imageMode(CORNER); 
 
-  //tilemap with 1.5x tileset vertical spacing 
-  tilemap = new Tiles([
-    '............................',
-    '............................',
-    '............................',
-    '............................',
-    '............................',
-    '............................'
-  ],grassImage.width / 2,height - grassImage.height / 2 * 16,grassImage.width, grassImage.height * 1.5);
+  // //tilemap with 1.5x tileset vertical spacing 
+  // tilemap = new Tiles([
+  //   '............................',
+  //   '............................',
+  //   '............................',
+  //   '............................',
+  //   '............................',
+  //   '............................'
+  // ],grassImage.width / 2,height - grassImage.height / 2 * 16,grassImage.width, grassImage.height * 1.5);
  
   //tilemap with no vertical spacing between tiles 
   tilemap2 = new Tiles([
@@ -263,14 +279,14 @@ function setup() {
     '............................................................',
     '............................................................',
     '............................................................',
-    '.......................ggggggggg............................',
-    '............CCCC......gsssssssss............................',
-    '............gggg.....gsssssssssss...........................',
-    '....................gssssssssssss...........................',
-    '...................gsssssssssssss...........................',
-    '.....CCC..........gssssssssssssss...........................',
-    'gggggggwglccrglcrggsssssssssssssslcccccrgggggggggggggggggggg',
-    'ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss', 
+    '............................................................',
+    '............CCCC............................................',
+    '............gggg............................................',
+    '............................................................',
+    '............................................................',
+    '.....CCC....................................................',
+    'gggggggwglccrglcrgggzg...gggggggglcccccrgg....gggggggggggggg',
+    'ssssssssssssssssssssss...sssssssssssssssss....ssssssssssssss', 
   ],grassImage.width / 2,height - grassImage.height / 2 * 27,grassImage.width, grassImage.height);
 
 
@@ -290,8 +306,9 @@ function draw() {
   textFont(myFont);
   fill('white');
   textSize(30);
-  text('Coins collected: ' + score, width - 350, 50);
-  text('Time:' + time, 50, 50);
+  text('Coins collected: ' + score, width - 350, 50); // coins stat
+  text('Time:' + time, 50, 50); //timer
+  text('Lives Left:' + lives, width/2 - 100, 50 ); // lives left 
 
   if(millis() - LastTimeUpdate >= timerDelay){
     time++;
@@ -306,6 +323,14 @@ function draw() {
     }
   }
 
+  if(mainCharacter.collides(checkpoint)){
+    respawnX = mainCharacter.x;
+    respawnY = mainCharacter.y;
+  }
+  // else{
+  //   respawnX = 100;
+  //   respawnY = 200;
+  // }
 
   //Basic attack
   
@@ -371,8 +396,20 @@ function draw() {
   }
 
   if(mainCharacter.y > height){
-    mainCharacter.x  = 100;
-    mainCharacter.y = 200;
+    mainCharacter.x  = respawnX;
+    mainCharacter.y = respawnY;
+    lives--;
+  }
+  
+  if(lives === 1){
+    respawnX = 100;
+    respawnY = 200;
+  }
+
+  if(lives === 0){
+    lives = 3;
+    score = 0;
+    time = 0;
   }
 
   camera.x = mainCharacter.x + 150;   
