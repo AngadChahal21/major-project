@@ -22,7 +22,7 @@ let lives = 3;
 
 ///respawn point
 respawnX = 100;
-respawn = 200;
+respawnY = 200;
 
 //timer
 let time = 0;
@@ -33,6 +33,8 @@ let timerDelay = 1000;
 let grassImage, soilImage, checkpointImage; // grass tiles
 let waterBlockImage, waterContinuousImage, waterLeftEdgeImage, waterRightEdgeImage; // water tiles
 let coinsImage; //coins tiles
+let flagImage;
+let orbImage;
 
 //Character images
 let characterIdle, characterRun, characterJump, characterAttack1;
@@ -41,7 +43,7 @@ let characterIdle, characterRun, characterJump, characterAttack1;
 let grassW, grassH, waterW, waterH;
 
 //groups 
-let ground, soil, water, waterLeft, waterRight, waterCont, coins, checkpoint;
+let ground, soil, water, waterLeft, waterRight, waterCont, coins, checkpoint, flags, orbs;
 
 //Characters
 let mainCharacter;
@@ -113,7 +115,7 @@ function preload(){
   ///ground
   grassImage =  loadImage('./tileset/1Tiles/ground-tile.png');
   soilImage = loadImage('./tileset/1Tiles/soil.png');
-  checkpointImage = loadImage('./tileset/1Tiles/checkpoint.png');
+  checkpointImage = loadImage('./tileset/1Tiles/ground-tile.png');
 
   //coins
   coinsImage = loadImage('./tileset/3Animated Objects/goldCoins.png');
@@ -123,6 +125,10 @@ function preload(){
   characterRun = loadImage('./characters/1 Biker/Biker_run.png');
   characterJump = loadImage('./characters/1 Biker/Biker_jump.png');
   characterAttack1 = loadImage('./characters/1 Biker/Biker_attack1.png');
+
+  flagImage = loadImage('./tileset/3Animated Objects/Flag.png');
+
+  orbImage = loadImage('./tileset/3Animated Objects/orb-power-up.png');
 
   //font
   myFont = loadFont('./PolygonPartyFont.ttf');
@@ -162,6 +168,14 @@ function setup() {
   //coins dimensions
   coinsImage.width = 240;
   coinsImage.height = 48;
+
+  //flag dimensions
+  flagImage.width = 384;
+  flagImage.height = 96;
+
+  //orb dimensions
+  orbImage.width = 192;
+  orbImage.height = 32;
 
   //character dimensions;
   characterIdle.width = 768; characterIdle.height = 192;
@@ -222,12 +236,27 @@ function setup() {
   soil.img = soilImage;
   soil.tile = 's';
 
+  //checkpoint flags
+  flags =  new Group();
+  flags.layer = 2;
+  flags.collider = 'none';
+  flags.spriteSheet = flagImage;
+  flags.addAni({h: 96, w:96, row: 0, frames: 4, frameDelay: 8 });
+  flags.tile = 'f';
+
   //coins
   coins = new Group();
   coins.collider = 'static';
   coins.spriteSheet = coinsImage;
   coins.addAni({h:58, w:48, row: 0, frames: 4, frameDelay: 8});
   coins.tile = 'C';
+
+  //orbs (power-up)
+  orbs = new Group();
+  orbs.collider = 'static';
+  orbs.spriteSheet = orbImage;
+  orbs.addAni({h: 32, w: 32, row: 0, frames: 6, frameDelay: 8});
+  orbs.tile = 'o';
 
   //character
   ///////////////////////////////////////////////////////////////////////////////////////
@@ -284,7 +313,7 @@ function setup() {
     '............gggg............................................',
     '............................................................',
     '............................................................',
-    '.....CCC....................................................',
+    '.....CCC............f.....o.............o...................',
     'gggggggwglccrglcrgggzg...gggggggglcccccrgg....gggggggggggggg',
     'ssssssssssssssssssssss...sssssssssssssssss....ssssssssssssss', 
   ],grassImage.width / 2,height - grassImage.height / 2 * 27,grassImage.width, grassImage.height);
@@ -293,6 +322,10 @@ function setup() {
   mainCharacter.overlaps(coins,(p,C) =>{
     C.remove();
     score++;
+  });
+
+  mainCharacter.overlaps(orbs,(p,o) =>{
+    o.remove();
   });
 
   groundSensor = new Sprite();
@@ -323,14 +356,23 @@ function draw() {
     }
   }
 
+  //setting checkpoint
   if(mainCharacter.collides(checkpoint)){
     respawnX = mainCharacter.x;
     respawnY = mainCharacter.y;
   }
-  // else{
-  //   respawnX = 100;
-  //   respawnY = 200;
-  // }
+
+  //resetting spawnpoint after death
+  if(lives === 1){
+    respawnX = 100;
+    respawnY = 200;
+  }
+
+  if(lives === 0){
+    lives = 3;
+    score = 0;
+    time = 0;
+  }
 
   //Basic attack
   
@@ -401,10 +443,7 @@ function draw() {
     lives--;
   }
   
-  if(lives === 1){
-    respawnX = 100;
-    respawnY = 200;
-  }
+  
 
   if(lives === 0){
     lives = 3;
