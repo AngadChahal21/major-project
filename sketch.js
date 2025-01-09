@@ -19,6 +19,7 @@ let GameState = "startScreen";
 let mainBackground;
 let myFont;
 let lives = 3;
+let powerUp;
 
 ///respawn point
 respawnX = 100;
@@ -362,6 +363,10 @@ function draw() {
     respawnY = mainCharacter.y;
   }
 
+  if(mainCharacter.collides(orbs)){
+    powerUp = true;
+  }
+
   //resetting spawnpoint after death
   if(lives === 1){
     respawnX = 100;
@@ -384,20 +389,40 @@ function draw() {
       mainCharacter.vel.x = -4.5;
       playerRun.frameDelay = 4;
       if(mainCharacter.colliding(water) || mainCharacter.colliding(waterCont)){
-        mainCharacter.vel.x = -1.5;
+        if(powerUp){
+          mainCharacter.vel.x = -6;
+        }
+        else{
+          mainCharacter.vel.x = -1.5;
+        }
       }
       else{
-        mainCharacter.vel.x = -4.5;
+        if(powerUp){
+          mainCharacter.vel.x = -6;
+        }
+        else{
+          mainCharacter.vel.x = -4.5;
+        }
       }
     }
     else{
       mainCharacter.vel.x = -2.5;
       playerRun.frameDelay = 6;
       if(mainCharacter.colliding(water) || mainCharacter.colliding(waterCont)){
-        mainCharacter.vel.x = -1.5;
+        if(powerUp){
+          mainCharacter.vel.x = -6;
+        }
+        else{
+          mainCharacter.vel.x = -1.5;
+        }
       }
       else{
-        mainCharacter.vel.x = -2.5;
+        if(powerUp){
+          mainCharacter.vel.x = -6;
+        }
+        else{
+          mainCharacter.vel.x = -2.5;
+        }
       }
     }
   }
@@ -407,23 +432,48 @@ function draw() {
     mainCharacter.ani = 'running';
     mainCharacter.mirror.x = false;
     if(kb.pressing('shift')){
-      mainCharacter.vel.x = 4.5;
-      playerRun.frameDelay = 4;
-      if(mainCharacter.colliding(water) || mainCharacter.colliding(waterCont)){
-        mainCharacter.vel.x = 1.5;
+      if(powerUp){
+        mainCharacter.vel.x = 6;
       }
       else{
         mainCharacter.vel.x = 4.5;
+      }
+      playerRun.frameDelay = 4;
+      if(mainCharacter.colliding(water) || mainCharacter.colliding(waterCont)){
+        if(powerUp){
+          mainCharacter.vel.x = 6;
+        }
+        else{
+          mainCharacter.vel.x = 1.5;
+        }
+      }
+      else{
+        if(powerUp){
+          mainCharacter.vel.x = 6;
+        }
+        else{
+          mainCharacter.vel.x = 4.5;
+        }
       }
     }
     else{
       mainCharacter.vel.x = 2.5;
       playerRun.frameDelay = 6;
       if(mainCharacter.colliding(water) || mainCharacter.colliding(waterCont)){
-        mainCharacter.vel.x = 1.5;
+        if(powerUp){
+          mainCharacter.vel.x = 6;
+        }
+        else{
+          mainCharacter.vel.x = 1.5;
+        }
       }
       else{
-        mainCharacter.vel.x = 2.5;
+        if(powerUp){
+          mainCharacter.vel.x = 6;
+        }
+        else{
+          mainCharacter.vel.x = 2.5;
+        }
       }
     }
   }
