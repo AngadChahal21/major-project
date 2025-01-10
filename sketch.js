@@ -6,6 +6,7 @@
 // - describe what you did to take this project "above and beyond"
 
 
+
 //home menu
 let PARTICLE_SIZE = 15;
 let menuBackground;
@@ -14,14 +15,12 @@ let particles = [];
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//main game
-let GameState = "startScreen";
+//game mechanics
+let GameState = "startGame";
 let mainBackground;
 let myFont;
-let lives = 3;
-let powerUp;
 
-///respawn point
+///spawn point
 respawnX = 100;
 respawnY = 200;
 
@@ -55,13 +54,16 @@ let playerRun, playerJump, playerAttack1;
 //tilemaps
 let tilemap, tilemap2;
 
-
 //stats
 let score = 0;
+let lives = 3;
+let powerUp;
 
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+
+//CLASSES
 class Particle{
   constructor(x, y, color){
     this.x = x;
@@ -102,7 +104,13 @@ class Particle{
   }
 }
 
+
+
+
+
+// PRELOADING
 function preload(){
+
   //backdrops
   menuBackground = loadImage('./pictures/menu-background.jpeg');
   mainBackground = loadImage('./tileset/2Background/Background.png');
@@ -127,8 +135,8 @@ function preload(){
   characterJump = loadImage('./characters/1 Biker/Biker_jump.png');
   characterAttack1 = loadImage('./characters/1 Biker/Biker_attack1.png');
 
+  ///
   flagImage = loadImage('./tileset/3Animated objects/Flag.png');
-
   orbImage = loadImage('./tileset/3Animated objects/orb-power-up.png');
 
   //font
@@ -136,6 +144,12 @@ function preload(){
 
 }
 
+
+
+
+
+
+//SETUP
 function setup() {
   createCanvas(windowWidth, windowHeight, "pixelated x10");
   makeParticles();
@@ -184,10 +198,7 @@ function setup() {
   characterJump.width = 768; characterJump.height = 192;
   characterAttack1.width = 1152; characterAttack1.height = 192;
 
-
-
   //groups 
-
   //grass
   ground = new Group();
   ground.layer = 0;
@@ -195,7 +206,7 @@ function setup() {
   ground.img = grassImage;
   ground.tile = 'g';
 
-  //checkpoint
+  //checkpoint block
   checkpoint = new Group();
   checkpoint.layer = 0;
   checkpoint.collider = "static";
@@ -204,28 +215,28 @@ function setup() {
 
   //ground + water  + ground block
   water = new Group();
-  water.layer = 0;
+  water.layer = 2;
   water.collider = 'static';
   water.img = waterBlockImage;
   water.tile = 'w';
 
   //ground + water (left)
   waterLeft = new Group();
-  waterLeft.layer = 0;
+  waterLeft.layer = 2;
   waterLeft.collider = 'static';
   waterLeft.img = waterLeftEdgeImage;
   waterLeft.tile = 'l';
 
   //ground + water (right)
   waterRight = new Group();
-  waterRight.layer = 0;
+  waterRight.layer = 2;
   waterRight.collider = 'static';
   waterRight.img = waterRightEdgeImage;
   waterRight.tile = 'r';
 
   //only water
   waterCont = new Group();
-  waterCont.layer = 0;
+  waterCont.layer = 2;
   waterCont.collider = 'static';
   waterCont.img = waterContinuousImage;
   waterCont.tile = 'c';
@@ -264,8 +275,8 @@ function setup() {
   mainCharacter = new Sprite();
   mainCharacter.layer = 1;
   mainCharacter.collider = 'dynamic';
-  mainCharacter.friction.x = 1;
-  mainCharacter.friction.y = 0;
+  mainCharacter.friction.x = 0;
+  mainCharacter.friction.y = 5;
   mainCharacter.drag.x = 20;
 
   //initial location
@@ -273,22 +284,17 @@ function setup() {
   mainCharacter.y = 200;
 
   //animations 
-  mainCharacter.addAnimation('idle', characterIdle,{h:192, w:192, row:0, frames:4, frameDelay:8}); //Standing/Idle
-  playerRun = mainCharacter.addAnimation('running', characterRun,{h:192, w:192, row:0, frames:6, frameDelay:6}); //Running
-  playerJump = mainCharacter.addAnimation('jumping', characterJump,{h:192, w:192, row:0, frames:4, frameDelay:8}); //Jumping
-  playerAttack1 = mainCharacter.addAnimation('attacking1', characterAttack1, {h:192, w:192, row: 0, frames: 6, frameDelay: 6}); //Basic Attack
-  
+  mainCharacter.anis.w = 16;
+  mainCharacter.anis.h = 16;
+  mainCharacter.anis.offset.y = 5;
+  mainCharacter.addAnimation('idle', characterIdle,{h:characterIdle.height, w:characterIdle.height, row:0, frames:4, frameDelay:8}); //Standing/Idle
+  playerRun = mainCharacter.addAnimation('running', characterRun,{h:characterRun.height, w:characterRun.height, row:0, frames:6, frameDelay:6}); //Running
+  playerJump = mainCharacter.addAnimation('jumping', characterJump,{h:characterJump.height, w:characterJump.height, row:0, frames:4, frameDelay:8}); //Jumping
+  playerAttack1 = mainCharacter.addAnimation('attacking1', characterAttack1, {h:characterAttack1.height, w:characterAttack1.height, row: 0, frames: 6, frameDelay: 6}); //Basic Attack
+
   mainCharacter.ani = 'idle';
   mainCharacter.rotationLock = true;
-  ///////////////////////////////////////////////////////////////////////////////////////
-
-  //mainCharacter.spriteSheet = characterIdle;
-  //mainCharacter.addAni({h:192, w:192, row:0, frames: 4, frameDelay: 8});
   
-
-  
-
-
   imageMode(CORNER); 
 
   // //tilemap with 1.5x tileset vertical spacing 
@@ -320,21 +326,48 @@ function setup() {
   ],grassImage.width / 2,height - grassImage.height / 2 * 27,grassImage.width, grassImage.height);
 
 
+  //coin collection
   mainCharacter.overlaps(coins,(p,C) =>{
     C.remove();
     score++;
   });
 
+  //orbs collection
   mainCharacter.overlaps(orbs,(p,o) =>{
     o.remove();
+    powerUp = true;
   });
 
-  groundSensor = new Sprite();
-  groundSensor.visible = false; 
-  groundSensor.mass = 0.01;
+  // groundSensor = new Sprite();
+  // groundSensor.visible = false; 
+  // groundSensor.mass = 0.01;
 }
 
+
+
+
+//DRAW FUNCTION
+
 function draw() {
+  if(GameState === 'startScreen'){
+    startScreen();
+  }
+  if(GameState === 'startGame'){
+    startGame();
+  }
+}
+
+function startScreen(){
+  // rect(0, 0, width * 2, height * 2);
+  
+  // background(menuBackground);
+  // for(let particle of particles){
+  //   particle.update();
+  //   particle.display();
+  // }
+}
+
+function startGame(){
   background(mainBackground);
 
   textFont(myFont);
@@ -363,9 +396,9 @@ function draw() {
     respawnY = mainCharacter.y;
   }
 
-  if(mainCharacter.collides(orbs)){
-    powerUp = true;
-  }
+  // if(mainCharacter.collides(orbs)){
+    
+  // }
 
   //resetting spawnpoint after death
   if(lives === 1){
@@ -389,16 +422,20 @@ function draw() {
       mainCharacter.vel.x = -4.5;
       playerRun.frameDelay = 4;
       if(mainCharacter.colliding(water) || mainCharacter.colliding(waterCont)){
+        mainCharacter.anis.offset.y = 10;
         if(powerUp){
           mainCharacter.vel.x = -6;
+          mainCharacter.frameDelay = 2;
         }
         else{
           mainCharacter.vel.x = -1.5;
         }
       }
       else{
+        mainCharacter.anis.offset.y = 5;
         if(powerUp){
           mainCharacter.vel.x = -6;
+          mainCharacter.frameDelay = 2;
         }
         else{
           mainCharacter.vel.x = -4.5;
@@ -411,6 +448,7 @@ function draw() {
       if(mainCharacter.colliding(water) || mainCharacter.colliding(waterCont)){
         if(powerUp){
           mainCharacter.vel.x = -6;
+          mainCharacter.frameDelay = 2;
         }
         else{
           mainCharacter.vel.x = -1.5;
@@ -419,6 +457,7 @@ function draw() {
       else{
         if(powerUp){
           mainCharacter.vel.x = -6;
+          mainCharacter.frameDelay = 2;
         }
         else{
           mainCharacter.vel.x = -2.5;
@@ -433,15 +472,22 @@ function draw() {
     mainCharacter.mirror.x = false;
     if(kb.pressing('shift')){
       if(powerUp){
+        // characterRun.height = 230.4;
+        // characterRun.width = 1382.4;
+        // playerRun = mainCharacter.addAnimation('running', characterRun,{h:characterRun.height, w:characterRun.height, row:0, frames:6, frameDelay:6}); //Running
         mainCharacter.vel.x = 6;
+        mainCharacter.frameDelay = 2;
+        // mainCharacter.y = mainCharacter.y + 10;
       }
       else{
         mainCharacter.vel.x = 4.5;
       }
       playerRun.frameDelay = 4;
       if(mainCharacter.colliding(water) || mainCharacter.colliding(waterCont)){
+        mainCharacter.anis.offset.y = 10;
         if(powerUp){
           mainCharacter.vel.x = 6;
+          mainCharacter.frameDelay = 2;
         }
         else{
           mainCharacter.vel.x = 1.5;
@@ -450,6 +496,7 @@ function draw() {
       else{
         if(powerUp){
           mainCharacter.vel.x = 6;
+          mainCharacter.frameDelay = 2;
         }
         else{
           mainCharacter.vel.x = 4.5;
@@ -462,6 +509,7 @@ function draw() {
       if(mainCharacter.colliding(water) || mainCharacter.colliding(waterCont)){
         if(powerUp){
           mainCharacter.vel.x = 6;
+          mainCharacter.frameDelay = 2;
         }
         else{
           mainCharacter.vel.x = 1.5;
@@ -470,6 +518,7 @@ function draw() {
       else{
         if(powerUp){
           mainCharacter.vel.x = 6;
+          mainCharacter.frameDelay = 2;
         }
         else{
           mainCharacter.vel.x = 2.5;
@@ -508,42 +557,10 @@ function draw() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   fill(0, 120);
-  //rect(0, 0, width * 2, height * 2);
-  
-  //background(menuBackground);
-  //for(let particle of particles){
-   //particle.update();
-    //particle.display();
-  //}
+ 
 }
 
-//pushing particles for the home menu
 function makeParticles(){
   for(let i = 0; i < height*15; i+=15){
     for(let j = 0; j < width*15; j+=15){
