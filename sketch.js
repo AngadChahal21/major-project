@@ -119,7 +119,7 @@ function preload(){
   checkpointImage = loadImage('./tileset/1Tiles/ground-tile.png');
 
   //coins
-  coinsImage = loadImage('./tileset/3Animated Objects/goldCoins.png');
+  coinsImage = loadImage('./tileset/3Animated objects/goldCoins.png');
 
   //character
   characterIdle = loadImage('./characters/1 Biker/Biker_idle.png');
@@ -127,9 +127,9 @@ function preload(){
   characterJump = loadImage('./characters/1 Biker/Biker_jump.png');
   characterAttack1 = loadImage('./characters/1 Biker/Biker_attack1.png');
 
-  flagImage = loadImage('./tileset/3Animated Objects/Flag.png');
+  flagImage = loadImage('./tileset/3Animated objects/Flag.png');
 
-  orbImage = loadImage('./tileset/3Animated Objects/orb-power-up.png');
+  orbImage = loadImage('./tileset/3Animated objects/orb-power-up.png');
 
   //font
   myFont = loadFont('./PolygonPartyFont.ttf');
