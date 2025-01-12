@@ -1,5 +1,5 @@
 // 2d platformer game 
-// Angadveer Chahal
+// 
 // Date
 //
 // Extra for Experts:
@@ -275,18 +275,26 @@ function setup() {
   mainCharacter = new Sprite();
   mainCharacter.layer = 1;
   mainCharacter.collider = 'dynamic';
-  mainCharacter.friction.x = 0;
-  mainCharacter.friction.y = 5;
-  mainCharacter.drag.x = 20;
 
+  // Adjust the collider's shape, offset, and size
+  mainCharacter.w = 90; // Collider width
+  mainCharacter.h = 140; // Collider height
+  //mainCharacter.colliderOffset = { x: -10, y: 0 }; // Offset if needed
+  mainCharacter.anis.offset.x = 45;
+  mainCharacter.anis.offset.y = -25;
+  //mainCharacter.friction.x = 0; 
+  mainCharacter.friction = 10;
+  //mainCharacter.drag.x = 20;
+
+  mainCharacter.debug = false;
   //initial location
   mainCharacter.x = 100;
   mainCharacter.y = 200;
 
   //animations 
-  mainCharacter.anis.w = 16;
-  mainCharacter.anis.h = 16;
-  mainCharacter.anis.offset.y = 5;
+  //mainCharacter.anis.w = 16;
+  //mainCharacter.anis.h = 16;
+  //mainCharacter.anis.offset.y = 5;
   mainCharacter.addAnimation('idle', characterIdle,{h:characterIdle.height, w:characterIdle.height, row:0, frames:4, frameDelay:8}); //Standing/Idle
   playerRun = mainCharacter.addAnimation('running', characterRun,{h:characterRun.height, w:characterRun.height, row:0, frames:6, frameDelay:6}); //Running
   playerJump = mainCharacter.addAnimation('jumping', characterJump,{h:characterJump.height, w:characterJump.height, row:0, frames:4, frameDelay:8}); //Jumping
@@ -309,20 +317,20 @@ function setup() {
  
   //tilemap with no vertical spacing between tiles 
   tilemap2 = new Tiles([
-    '............................................................',
-    '............................................................',
-    '............................................................',
-    '............................................................',
-    '............................................................',
-    '............................................................',
-    '............................................................',
-    '............CCCC............................................',
-    '............gggg............................................',
-    '............................................................',
-    '............................................................',
-    '.....CCC............f.....o.............o...................',
-    'gggggggwglccrglcrgggzg...gggggggglcccccrgg....gggggggggggggg',
-    'ssssssssssssssssssssss...sssssssssssssssss....ssssssssssssss', 
+    '.....................................................................................................',
+    '.....................................................................................................',
+    '.....................................................................................................',
+    '.....................................................................................................',
+    '.....................................................................................................',
+    '.....................................................................................................',
+    '.....................................................................................................',
+    '.....................................................................................................',
+    '..................................CCCCCCCCC.................g........................................',
+    '..................................ggggggggg............gg............................................',
+    '...............................g..............ggggg..................................................',
+    '.....CCC............f.....o..g..........o............................CCCCCCCC........................',
+    'gggggggwglccrglcrgggzg...gggggggglcccccrgg....gggggggggggggggggggglccccccccccrglcrglcccccrggg........',
+    'ssssssssssssssssssssss...sssssssssssssssss....ssssssssssssss.........................................', 
   ],grassImage.width / 2,height - grassImage.height / 2 * 27,grassImage.width, grassImage.height);
 
 
@@ -426,6 +434,7 @@ function startGame(){
         if(powerUp){
           mainCharacter.vel.x = -6;
           mainCharacter.frameDelay = 2;
+          mainCharacter.friction = 7;
         }
         else{
           mainCharacter.vel.x = -1.5;
@@ -436,6 +445,7 @@ function startGame(){
         if(powerUp){
           mainCharacter.vel.x = -6;
           mainCharacter.frameDelay = 2;
+          mainCharacter.friction = 7;
         }
         else{
           mainCharacter.vel.x = -4.5;
@@ -449,6 +459,7 @@ function startGame(){
         if(powerUp){
           mainCharacter.vel.x = -6;
           mainCharacter.frameDelay = 2;
+          mainCharacter.friction = 7;
         }
         else{
           mainCharacter.vel.x = -1.5;
@@ -458,6 +469,7 @@ function startGame(){
         if(powerUp){
           mainCharacter.vel.x = -6;
           mainCharacter.frameDelay = 2;
+          mainCharacter.friction = 7;
         }
         else{
           mainCharacter.vel.x = -2.5;
@@ -484,19 +496,22 @@ function startGame(){
       }
       playerRun.frameDelay = 4;
       if(mainCharacter.colliding(water) || mainCharacter.colliding(waterCont)){
-        mainCharacter.anis.offset.y = 10;
+        mainCharacter.anis.offset.y = -15;
         if(powerUp){
           mainCharacter.vel.x = 6;
           mainCharacter.frameDelay = 2;
+          mainCharacter.friction = 7;
         }
         else{
           mainCharacter.vel.x = 1.5;
         }
       }
       else{
+        mainCharacter.anis.offset.y = -25;
         if(powerUp){
           mainCharacter.vel.x = 6;
           mainCharacter.frameDelay = 2;
+          mainCharacter.friction = 7;
         }
         else{
           mainCharacter.vel.x = 4.5;
@@ -510,6 +525,7 @@ function startGame(){
         if(powerUp){
           mainCharacter.vel.x = 6;
           mainCharacter.frameDelay = 2;
+          mainCharacter.friction = 7;
         }
         else{
           mainCharacter.vel.x = 1.5;
@@ -519,6 +535,7 @@ function startGame(){
         if(powerUp){
           mainCharacter.vel.x = 6;
           mainCharacter.frameDelay = 2;
+          mainCharacter.friction = 7;
         }
         else{
           mainCharacter.vel.x = 2.5;
