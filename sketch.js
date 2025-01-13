@@ -61,10 +61,16 @@ let heartImage;
 let score = 0;
 let lives = 3;
 let heartImages = [];
-let powerUp;
+
 
 let health = 100; // Player's current health
 const maxHealth = 100; // Maximum health
+
+//orb timer
+let powerUp;
+let orbTime = 25;
+let orbLastTimeUpdate = 0;
+let orbTimerDelay = 1000;
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -337,20 +343,20 @@ function setup() {
  
   //tilemap with no vertical spacing between tiles 
   tilemap2 = new Tiles([
-    '.....................................................................................................',
-    '.....................................................................................................',
-    '.....................................................................................................',
-    '.....................................................................................................',
-    '.....................................................................................................',
-    '.....................................................................................................',
-    '.....................................................................................................',
-    '.....................................................................................................',
-    '..................................CCCCCCCCC.................g........................................',
-    '..................................ggggggggg............gg............................................',
-    '...............................g..............ggggg..................................................',
-    '.....CCC............f.....o..g..........o............................CCCCCCCC........................',
-    'gggggggwglccrglcrgggzg...gggggggglcccccrgg....gggggggggggggggggggglccccccccccrglcrglcccccrggg........',
-    'ssssssssssssssssssssss...sssssssssssssssss....ssssssssssssss.........................................', 
+    '............................................................................................................................',
+    '............................................................................................................................',
+    '............................................................................................................................',
+    '............................................................................................................................',
+    '............................................................................................................................',
+    '............................................................................................................................',
+    '............................................CC..............................................................................',
+    '...........................................C..C.............................................................................',
+    '..................................CCCCCCCCC.................gggg............................................................',
+    '..................................gggggggg....g........gg...............................................................CC..',
+    '...............................g..............sgggg..............................................................CCC...C..C.',
+    '.....CCC.....CCCC...f.....o..g..........o.....sssss..................CCCCCCCC...................................C...CCC....C',
+    'gggggggwglccrglcrgggzg...ggggsggglcccccrgg....sssssggggggggggggggglccccccccccrglcrglcccccrggg.....gggggglcccccrggggggggg....',
+    'ssssssssssssssssssssss...sssssssssssssssss....sssssssssssssssssssssssssssssssssssssssssssssss.........ssssssssssssssssss....', 
   ],grassImage.width / 2,height - grassImage.height / 2 * 27,grassImage.width, grassImage.height);
 
 
@@ -404,6 +410,7 @@ function startGame(){
   text('Coins collected: ' + score, width - 350, 50); // coins stat
   text('Time:' + time, 50, 50); //timer
 
+
   //hearts
   for (let i = 0; i < lives; i++) {
     image(heartImages[i], (width/2 - 100) + i * 70, -10, 70, 95); // Draw hearts spaced apart
@@ -428,6 +435,29 @@ function startGame(){
   rect(x, y, barWidth, barHeight);
   rectMode(CORNER);
 
+  //orb timer
+  if(powerUp){
+    if(millis() - orbLastTimeUpdate >= orbTimerDelay){
+      orbTime--;
+      orbLastTimeUpdate = millis();
+    }
+
+    if(orbTime < 6){
+      fill('red');
+    }
+    else{
+      fill('white');
+
+    }
+    text('Power up:' + orbTime, 400, 50); //timer
+
+    if(orbTime < 0){
+      powerUp = false;
+    }
+
+  }
+
+  
   //timer count
   if(millis() - LastTimeUpdate >= timerDelay){
     time++;
@@ -475,7 +505,7 @@ function startGame(){
 
       //slower and sinked in water (with shift)
       if(mainCharacter.colliding(water) || mainCharacter.colliding(waterCont)){
-        mainCharacter.anis.offset.y = 10;
+        mainCharacter.anis.offset.y = -15;
 
         //faster with power-up regardless of water
         if(powerUp){
@@ -483,6 +513,7 @@ function startGame(){
           mainCharacter.frameDelay = 2;
           mainCharacter.friction = 7;
         }
+
         //no power-up
         else{
           mainCharacter.vel.x = -1.5;
@@ -491,7 +522,7 @@ function startGame(){
 
       //no water with shift
       else{
-        mainCharacter.anis.offset.y = 5;
+        mainCharacter.anis.offset.y = -25;
 
         //higher speed during power-up
         if(powerUp){
@@ -515,6 +546,7 @@ function startGame(){
       //water without sprint (same as water with sprint)
       if(mainCharacter.colliding(water) || mainCharacter.colliding(waterCont)){
         //power-up in water
+        mainCharacter.anis.offset.y = -15;
         if(powerUp){
           mainCharacter.vel.x = -6;
           mainCharacter.frameDelay = 2;
@@ -529,6 +561,7 @@ function startGame(){
 
       //no water
       else{
+        mainCharacter.anis.offset.y = -25;
         if(powerUp){
           mainCharacter.vel.x = -6;
           mainCharacter.frameDelay = 2;
@@ -545,57 +578,88 @@ function startGame(){
   else if(kb.pressing('right')){
     mainCharacter.ani = 'running';
     mainCharacter.mirror.x = false;
+    //shift for sprint
     if(kb.pressing('shift')){
+
+      //power-up while sprinting (same as not sprinting)
       if(powerUp){
         mainCharacter.vel.x = 6;
         mainCharacter.frameDelay = 2;
       }
+
+      //no power-up
       else{
         mainCharacter.vel.x = 4.5;
       }
       playerRun.frameDelay = 4;
+
+      //water while sprinting
       if(mainCharacter.colliding(water) || mainCharacter.colliding(waterCont)){
         mainCharacter.anis.offset.y = -15;
+
+        //water with power-up
         if(powerUp){
           mainCharacter.vel.x = 6;
           mainCharacter.frameDelay = 2;
-          mainCharacter.friction = 7;
+          mainCharacter.friction = 7  ;
         }
+
+        //water without power-up
         else{
           mainCharacter.vel.x = 1.5;
         }
       }
+
+      //no water while sprinting
       else{
         mainCharacter.anis.offset.y = -25;
+
+        //power-up
         if(powerUp){
           mainCharacter.vel.x = 6;
           mainCharacter.frameDelay = 2;
           mainCharacter.friction = 7;
         }
+
+        //no power-up
         else{
           mainCharacter.vel.x = 4.5;
         }
       }
     }
+
+    //no shift no sprint
     else{
       mainCharacter.vel.x = 2.5;
       playerRun.frameDelay = 6;
+
+      //water without sprint
       if(mainCharacter.colliding(water) || mainCharacter.colliding(waterCont)){
+        mainCharacter.anis.offset.y = -15;
+        //power up in water
         if(powerUp){
           mainCharacter.vel.x = 6;
           mainCharacter.frameDelay = 2;
           mainCharacter.friction = 7;
         }
+
+        //no power-up in water without sprint
         else{
           mainCharacter.vel.x = 1.5;
         }
       }
+
+      ///no water without sprint
       else{
+        mainCharacter.anis.offset.y = -25;
+        //power-up
         if(powerUp){
           mainCharacter.vel.x = 6;
           mainCharacter.frameDelay = 2;
           mainCharacter.friction = 7;
         }
+
+        //no power-up on ground without sprint
         else{
           mainCharacter.vel.x = 2.5;
         }
