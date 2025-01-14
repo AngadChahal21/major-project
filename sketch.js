@@ -20,6 +20,10 @@ let particles = [];
 //game state
 let GameState = "startGame";
 let mainBackground;
+let layer2X = 0;
+let layer3X = 0;
+let layer4X = 0;
+let layer5X = 0;
 let myFont;
 
 ///spawn point
@@ -71,6 +75,14 @@ let powerUp;
 let orbTime = 25;
 let orbLastTimeUpdate = 0;
 let orbTimerDelay = 1000;
+
+//parallax
+let moving = false;
+let layer1;
+let layer2;
+let layer3;
+let layer4;
+let layer5;
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -129,6 +141,14 @@ function preload(){
   //backdrops
   menuBackground = loadImage('./pictures/menu-background.jpeg');
   mainBackground = loadImage('./tileset/2Background/Background.png');
+
+  ///parallax backgrounds
+  layer1 = loadImage('./tileset/2Background/Layers/1.png');
+  layer2 = loadImage('./tileset/2Background/Layers/2.png');
+  layer3 = loadImage('./tileset/2Background/Layers/3.png');
+  layer4 = loadImage('./tileset/2Background/Layers/4.png');
+  layer5 = loadImage('./tileset/2Background/Layers/5.png');
+
 
   //water tiles
   waterBlockImage = loadImage('./tileset/1Tiles/singleWater.png');
@@ -217,6 +237,21 @@ function setup() {
   //orb dimensions
   orbImage.width = 192;
   orbImage.height = 32;
+
+  mainBackground.width = windowWidth;
+  mainBackground.height = windowHeight;
+
+  layer2.width = windowWidth;
+  layer2.height = windowHeight;
+
+  layer3.width = windowWidth;
+  layer3.height = windowHeight;
+
+  layer4.width =windowWidth;
+  layer4.height = windowHeight;
+
+  layer5.width = windowWidth;
+  layer5.height = windowHeight;
 
   //heart dimensions
 
@@ -349,6 +384,7 @@ function setup() {
     '............................................................................................................................',
     '............................................................................................................................',
     '............................................................................................................................',
+    '............................................................................................................................',
     '............................................CC..............................................................................',
     '...........................................C..C.............................................................................',
     '..................................CCCCCCCCC.................gggg............................................................',
@@ -356,7 +392,7 @@ function setup() {
     '...............................g..............sgggg..............................................................CCC...C..C.',
     '.....CCC.....CCCC...f.....o..g..........o.....sssss..................CCCCCCCC...................................C...CCC....C',
     'gggggggwglccrglcrgggzg...ggggsggglcccccrgg....sssssggggggggggggggglccccccccccrglcrglcccccrggg.....gggggglcccccrggggggggg....',
-    'ssssssssssssssssssssss...sssssssssssssssss....sssssssssssssssssssssssssssssssssssssssssssssss.........ssssssssssssssssss....', 
+    //'ssssssssssssssssssssss...sssssssssssssssss....sssssssssssssssssssssssssssssssssssssssssssssss.........ssssssssssssssssss....', 
   ],grassImage.width / 2,height - grassImage.height / 2 * 27,grassImage.width, grassImage.height);
 
 
@@ -402,7 +438,52 @@ function startScreen(){
 }
 
 function startGame(){
-  background(mainBackground);
+  //background(mainBackground);
+
+  //PARALLAX BACKGROUND
+
+  //layer 1
+  background(layer1);
+
+  //layer 2
+  image(layer2, layer2X, 0 );
+  image(layer2, layer2X + width, 0);
+  if(moving){
+    layer2X-= 1;
+  }
+  if(layer2X < -width){
+    layer2X = 0;
+  }
+
+  //layer 3
+  image(layer3, layer3X, 0 );
+  image(layer3, layer3X + width, 0);
+  if(moving){
+    layer3X-= 2;
+  }
+  if(layer3X < -width){
+    layer3X = 0;
+  }
+
+  //layer 4
+  image(layer4, layer4X, 0 );
+  image(layer4, layer4X + width, 0);
+  if(moving){
+    layer4X-= 3;
+  }
+  if(layer4X < -width){
+    layer4X = 0;
+  }
+
+  //layer 5
+  image(layer5, layer5X, 0 );
+  image(layer5, layer5X + width, 0);
+  if(moving){
+    layer5X-=2;
+  }
+  if(layer5X < -width){
+    layer5X = 0;
+  }
 
   textFont(myFont);
   fill('white');
@@ -495,6 +576,7 @@ function startGame(){
   
   ///left arrow & 'A' (left side movement)
   if(kb.pressing('left')){
+    moving = true;
     mainCharacter.ani = 'running';
     mainCharacter.mirror.x = true;
 
@@ -576,6 +658,7 @@ function startGame(){
 
   //right arrow & 'D' (Right side movement)
   else if(kb.pressing('right')){
+    moving = true;
     mainCharacter.ani = 'running';
     mainCharacter.mirror.x = false;
     //shift for sprint
@@ -675,6 +758,7 @@ function startGame(){
 
   
   else{
+    moving = false;
     mainCharacter.ani = 'idle';
   }
 
@@ -706,3 +790,6 @@ function makeParticles(){
     }
   }
 }
+
+
+//https://editor.p5js.org/davidbouchard/sketches/0T3nAhuYp
