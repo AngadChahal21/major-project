@@ -53,7 +53,7 @@ let ground, soil, water, waterLeft, waterRight, waterCont, coins, checkpoint, fl
 let mainCharacter;
 
 //animations
-let playerRun, playerJump, playerAttack1;
+let playerRun, playerJump, playerAttack1, enemyIdle, enemyRun;
 
 //tilemaps
 let tilemap, tilemap2;
@@ -66,7 +66,7 @@ let score = 0;
 let lives = 3;
 let heartImages = [];
 
-
+//health
 let health = 100; // Player's current health
 const maxHealth = 100; // Maximum health
 
@@ -83,6 +83,12 @@ let layer2;
 let layer3;
 let layer4;
 let layer5;
+
+//enemies
+let enemies;
+let enemySpeed = 2;
+let enemyGroup;
+
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -170,6 +176,10 @@ function preload(){
   characterRun = loadImage('./characters/1 Biker/Biker_run.png');
   characterJump = loadImage('./characters/1 Biker/Biker_jump.png');
   characterAttack1 = loadImage('./characters/1 Biker/Biker_attack1.png');
+
+  //enemies
+  enemyIdle = loadImage('./Enemies/Mushroom/Idle.png');
+  enemyRun = loadImage('./Enemies/Mushroom/Run.png');
 
   //Flag
   flagImage = loadImage('./tileset/3Animated objects/Flag.png');
@@ -260,6 +270,8 @@ function setup() {
   characterRun.width = 1152; characterRun.height = 192;
   characterJump.width = 768; characterJump.height = 192;
   characterAttack1.width = 1152; characterAttack1.height = 192;
+
+  
 
   //groups 
   //grass
@@ -363,6 +375,23 @@ function setup() {
 
   mainCharacter.ani = 'idle';
   mainCharacter.rotationLock = true;
+
+
+  enemyGroup = new Group();
+
+
+  //enemies
+  enemy = new Sprite();
+  enemy.layer = 1;
+  enemy.collider = 'dynamic';
+  enemy.startX = 250; // Left boundary
+  enemy.endX = 500; // Right boundary
+  enemy.velocity.x = 2; // Initial velocity
+
+  enemy.addAnimation('idle', enemyIdle,{h:enemyIdle.height, w:enemyIdle.height, row:0, frames:4, frameDelay:8}); //Standing/Idle
+  enemy.addAnimation('running', enemyRun,{h:enemyRun.height, w:enemyRun.height, row:0, frames:8, frameDelay:6}); //Running
+  enemyGroup.add(enemy);
+
   
   imageMode(CORNER); 
 
@@ -570,6 +599,25 @@ function startGame(){
     lives = 3;
     score = 0;
     time = 0;
+  }
+
+
+
+  for (let e of enemyGroup) {
+    // Reverse direction at boundaries
+    if (e.x >= e.endX || e.x <= e.startX) {
+      e.velocity.x *= -1; // Reverse direction
+  
+      // Flip sprite horizontally when direction changes
+      e.mirror.x *= -1;
+    }
+  
+    // Switch to 'idle' animation if the enemy stops (optional)
+    if (e.velocity.x === 0) {
+      e.changeAnimation('idle');
+    } else {
+      e.changeAnimation('running');
+    }
   }
 
 
