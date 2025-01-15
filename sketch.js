@@ -38,7 +38,7 @@ let timerDelay = 1000;
 // Tile images 
 let grassImage, soilImage, checkpointImage; // grass tiles
 let waterBlockImage, waterContinuousImage, waterLeftEdgeImage, waterRightEdgeImage; // water tiles
-let coinsImage, flagImage, orbImage;
+let coinsImage, flagImage, orbImage, jumperImage;
 
 //Character images
 let characterIdle, characterRun, characterJump, characterAttack1;
@@ -47,7 +47,7 @@ let characterIdle, characterRun, characterJump, characterAttack1;
 let grassW, grassH, waterW, waterH;
 
 //groups 
-let ground, soil, water, waterLeft, waterRight, waterCont, coins, checkpoint, flags, orbs;
+let ground, soil, water, waterLeft, waterRight, waterCont, coins, checkpoint, flags, orbs, jumper;
 
 //Characters
 let mainCharacter;
@@ -75,6 +75,12 @@ let powerUp;
 let orbTime = 25;
 let orbLastTimeUpdate = 0;
 let orbTimerDelay = 1000;
+
+//jumper power-up
+let jumperPowerUp = false;
+let jumpTime = 45;
+let jumpLastTimeUpdate = 0;
+let jumpTimerDelay = 1000;
 
 //parallax
 let moving = false;
@@ -170,6 +176,7 @@ function preload(){
   //coins and power-ups
   coinsImage = loadImage('./tileset/3Animated objects/goldCoins.png');
   orbImage = loadImage('./tileset/3Animated objects/orb-power-up.png');
+  jumperImage = loadImage('./tileset/3Animated objects/Rune.png');
 
   //character
   characterIdle = loadImage('./characters/1 Biker/Biker_idle.png');
@@ -248,6 +255,9 @@ function setup() {
   orbImage.width = 192;
   orbImage.height = 32;
 
+  jumperImage.width = 192;
+  jumperImage.height = 48;
+
   mainBackground.width = windowWidth;
   mainBackground.height = windowHeight;
 
@@ -271,6 +281,12 @@ function setup() {
   characterJump.width = 768; characterJump.height = 192;
   characterAttack1.width = 1152; characterAttack1.height = 192;
 
+  //enemy dimensions
+  enemyIdle.width = 1200;
+  enemyIdle.height = 300;
+
+  enemyRun.width = 2400;
+  enemyRun.height = 300;
   
 
   //groups 
@@ -333,20 +349,28 @@ function setup() {
 
   //coins
   coins = new Group();
-  coins.collider = 'static';
+  coins.collider = 'none';
   coins.spriteSheet = coinsImage;
   coins.addAni({h:58, w:48, row: 0, frames: 4, frameDelay: 8});
   coins.tile = 'C';
 
   //orbs (power-up)
   orbs = new Group();
-  orbs.collider = 'static';
+  orbs.collider = 'none';
   orbs.spriteSheet = orbImage;
   orbs.addAni({h: 32, w: 32, row: 0, frames: 6, frameDelay: 8});
   orbs.tile = 'o';
 
+  //jumper power-up
+  jumper = new Group();
+  jumper.colldier = 'static';
+  jumper.spriteSheet = jumperImage;
+  jumper.addAni({h: 48, w: 48, row: 0, frames:4, frameDelay: 8});
+  jumper.tile = 'j';
+  jumper.h = 80;
+
   //player
-  mainCharacter = new Sprite();
+  mainCharacter = new Sprite();  
   mainCharacter.layer = 1;
   mainCharacter.collider = 'dynamic';
 
@@ -361,7 +385,10 @@ function setup() {
   mainCharacter.friction = 10;
   //mainCharacter.drag.x = 20;
 
-  mainCharacter.debug = false; // for visible hitbox
+
+  // for visible hitbox
+  mainCharacter.debug = false; 
+ 
 
   //initial location
   mainCharacter.x = 100;
@@ -384,9 +411,20 @@ function setup() {
   enemy = new Sprite();
   enemy.layer = 1;
   enemy.collider = 'dynamic';
-  enemy.startX = 250; // Left boundary
-  enemy.endX = 500; // Right boundary
+  enemy.startX = 1000; // Left boundary
+  enemy.endX = 0; // Right boundary
   enemy.velocity.x = 2; // Initial velocity
+
+
+  //hitbox adjustments
+  enemy.debug = false;
+  enemy.w = 50;
+  enemy.h = 70;
+  enemy.anis.offset.y = -10;
+
+  //initial location
+  enemy.x = 1500;
+  enemy.y = height - 300;
 
   enemy.addAnimation('idle', enemyIdle,{h:enemyIdle.height, w:enemyIdle.height, row:0, frames:4, frameDelay:8}); //Standing/Idle
   enemy.addAnimation('running', enemyRun,{h:enemyRun.height, w:enemyRun.height, row:0, frames:8, frameDelay:6}); //Running
@@ -415,11 +453,11 @@ function setup() {
     '............................................................................................................................',
     '............................................................................................................................',
     '............................................CC..............................................................................',
-    '...........................................C..C.............................................................................',
+    '...........................................C..C...............j.............................................................',
     '..................................CCCCCCCCC.................gggg............................................................',
     '..................................gggggggg....g........gg...............................................................CC..',
     '...............................g..............sgggg..............................................................CCC...C..C.',
-    '.....CCC.....CCCC...f.....o..g..........o.....sssss..................CCCCCCCC...................................C...CCC....C',
+    '.....CCCoj...CCCC...f.....o..g..........o.....sssss..................CCCCCCCC...................................C...CCC....C',
     'gggggggwglccrglcrgggzg...ggggsggglcccccrgg....sssssggggggggggggggglccccccccccrglcrglcccccrggg.....gggggglcccccrggggggggg....',
     //'ssssssssssssssssssssss...sssssssssssssssss....sssssssssssssssssssssssssssssssssssssssssssssss.........ssssssssssssssssss....', 
   ],grassImage.width / 2,height - grassImage.height / 2 * 27,grassImage.width, grassImage.height);
@@ -435,6 +473,12 @@ function setup() {
   mainCharacter.overlaps(orbs,(p,o) =>{
     o.remove();
     powerUp = true;
+  });
+
+  //jumper collection
+  mainCharacter.overlaps(jumper,(p,j) =>{
+    j.remove();
+    jumperPowerUp = true;
   });
 
   // groundSensor = new Sprite();
@@ -533,18 +577,23 @@ function startGame(){
   let y = 80;
   //Bar Background 
   fill(200);
-  rectMode(CENTER);
-  rect(x, y, barWidth, barHeight);
+  
+  rect(x - barWidth/2, y, barWidth, barHeight);
   // Current health (green)
   fill(0, 255, 0);
-  rect(x, y, map(health, 0, maxHealth, 0, barWidth), barHeight);
+
+  if(health === 70){
+    fill('yellow');
+  }
+
+
+  rect(x - barWidth/2, y, map(health, 0, maxHealth, 0, barWidth), barHeight);
   // Border
   noFill();
   stroke(0);
   
-  rect(x, y, barWidth, barHeight);
-  rectMode(CORNER);
-
+  rect(x - barWidth/2, y, barWidth, barHeight);
+  
   //orb timer
   if(powerUp){
     if(millis() - orbLastTimeUpdate >= orbTimerDelay){
@@ -559,10 +608,33 @@ function startGame(){
       fill('white');
 
     }
-    text('Power up:' + orbTime, 400, 50); //timer
+    text('Speed pearl:' + orbTime, 400, 50); //timer
 
     if(orbTime < 0){
       powerUp = false;
+    }
+
+  }
+
+
+  //jump timer
+  if(jumperPowerUp){
+    if(millis() - jumpLastTimeUpdate >= jumpTimerDelay){
+      jumpTime--;
+      jumpLastTimeUpdate = millis();
+    }
+
+    if(jumpTime < 11){
+      fill('red');
+    }
+    else{
+      fill('white');
+
+    }
+    text('Jump gem:' + jumpTime, 400, 100); //timer
+
+    if(jumpTime < 0){
+      jumperPowerUp = false;
     }
 
   }
@@ -578,7 +650,14 @@ function startGame(){
   if(mainCharacter.colliding(water) || mainCharacter.colliding(waterLeft) || mainCharacter.colliding(waterRight) || mainCharacter.colliding(ground) || mainCharacter.colliding(waterCont)){
     if(kb.presses('up')){
       mainCharacter.ani = 'jumping';
-      mainCharacter.vel.y = -7;
+
+      if(jumperPowerUp){
+        mainCharacter.vel.y = -12;
+      }
+
+      else{
+        mainCharacter.vel.y = -7;
+      }
     }
   }
 
@@ -586,6 +665,10 @@ function startGame(){
   if(mainCharacter.collides(checkpoint)){
     respawnX = mainCharacter.x;
     respawnY = mainCharacter.y;
+  }
+
+  if(mainCharacter.collides(enemy)){
+    health = 70;
   }
 
   //resetting spawnpoint after death
@@ -602,23 +685,25 @@ function startGame(){
   }
 
 
+  enemy.velocity.x = -1;
+  enemy.mirror.x = true;
 
-  for (let e of enemyGroup) {
-    // Reverse direction at boundaries
-    if (e.x >= e.endX || e.x <= e.startX) {
-      e.velocity.x *= -1; // Reverse direction
+  // for (let e of enemyGroup) {
+  //   // Reverse direction at boundaries
+  //   if (e.x >= e.endX || e.x <= e.startX) {
+  //     e.velocity.x *= -1; // Reverse direction
   
-      // Flip sprite horizontally when direction changes
-      e.mirror.x *= -1;
-    }
+  //     // Flip sprite horizontally when direction changes
+  //     e.mirror.x *= -1;
+  //   }
   
-    // Switch to 'idle' animation if the enemy stops (optional)
-    if (e.velocity.x === 0) {
-      e.changeAnimation('idle');
-    } else {
-      e.changeAnimation('running');
-    }
-  }
+  //   // Switch to 'idle' animation if the enemy stops (optional)
+  //   if (e.velocity.x === 0) {
+  //     e.changeAnimation('idle');
+  //   } else {
+  //     e.changeAnimation('running');
+  //   }
+  // }
 
 
   
@@ -806,8 +891,11 @@ function startGame(){
 
   
   else{
-    moving = false;
     mainCharacter.ani = 'idle';
+  }
+
+  if(mainCharacter.velocity.x === 0){
+    moving = false;
   }
 
   // if character falls down, then respawn and decrease 1 life
