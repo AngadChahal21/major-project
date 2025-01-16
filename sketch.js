@@ -95,13 +95,23 @@ let enemies;
 let enemySpeed = 2;
 let enemyGroup;
 
+
+//shooting enemy
 let shootingEnemy;
-
 let fireballGroup;
-
 let direction;
 let fireballAni;
 
+//dynamic platforms 
+let platform;
+let platformImage;
+
+
+//fireball
+let fireballImage1, fireballImage2, fireballImage3, fireballImage4, fireballImage5;
+
+//barrier
+let barrier;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ------------------------------- CLASSES --------------------------------------------------------- //
@@ -213,6 +223,15 @@ function preload(){
     heartImages.push(heartImage); 
   }
 
+  //platform 
+  platformImage = loadImage('./tileset/1Tiles/platform.png');
+
+  //fireballs
+  fireballImage1 = loadImage('./fireball/FB500-1.png');
+  fireballImage2 = loadImage('./fireball/FB500-2.png');
+  fireballImage3 = loadImage('./fireball/FB500-3.png');
+  fireballImage4 = loadImage('./fireball/FB500-4.png');
+  fireballImage5 = loadImage('./fireball/FB500-5.png');
 }
 
 
@@ -233,6 +252,9 @@ function setup() {
   //tile dimensions
   grassImage.width = 100;
   grassImage.height = 100;
+
+  platformImage.width = 100;
+  platformImage.height = 100;
 
   soilImage.width = 100;
   soilImage.height = 100;
@@ -303,6 +325,12 @@ function setup() {
 
   shootingEnemyAttack.width = 3600;
   shootingEnemyAttack.height = 450;
+
+  fireballImage1.width = 40; fireballImage1.height = 40;
+  fireballImage2.width = 40; fireballImage2.height = 40;
+  fireballImage3.width = 40; fireballImage3.height = 40;
+  fireballImage4.width = 40; fireballImage4.height = 40;
+  fireballImage5.width = 40; fireballImage5.height = 40;
 
   
 
@@ -386,6 +414,33 @@ function setup() {
   jumper.tile = 'j';
   jumper.h = 80;
 
+  //platform
+  platform = new Group();
+  platform.collider = 'kinematic';
+  platform.tile = 'p';
+  platform.image = platformImage;
+
+  const PLATFORM_COORDS = platform.x;
+  const PLATFORM_RIGHT_LIMIT = PLATFORM_COORDS + 20;
+  const PLATFORM_LEFT_LIMIT = PLATFORM_COORDS - 20;
+  
+  if(platform.x > PLATFORM_RIGHT_LIMIT){
+    platform.velocity.x = -1.5;
+  }
+  if(platform.x < PLATFORM_LEFT_LIMIT){
+    platform.velocity.x = 1.5;
+  }
+
+  else{
+    platform.velocity.x = 1.5;
+  }
+
+  //barriers
+  barrier = new Group();
+  barrier.visible = false;
+  barrier.tile = 'b';
+  barrier.collider = 'static';
+
   //player
   mainCharacter = new Sprite();  
   mainCharacter.layer = 1;
@@ -452,11 +507,12 @@ function setup() {
   shootingEnemy.layer = 1;
   shootingEnemy.collider = 'dynamic'; 
 
-  shootingEnemy.debug = true;
+  shootingEnemy.debug = false;
   shootingEnemy.w = 90;
   shootingEnemy.h = 90;
 
   shootingEnemy.anis.offset.y = -20;
+  shootingEnemy.anis.offset.x = -40;
 
   shootingEnemy.x = 1100;
   shootingEnemy.y = 300;
@@ -498,9 +554,9 @@ function setup() {
     '............................................................................................................................',
     '..........ggggggggggggggggg.......................C..C...............j......................................................',
     '..................................CCCCCCCCC.................gggg............................................................',
-    '..................................gggggggg....g........gg...............................................................CC..',
+    '.....p............................gggggggg....g........gg...............................................................CC..',
     '...............................g..............sgggg..............................................................CCC...C..C.',
-    '.....CCCoj...CCCC...f.....o..g..........o.....sssss..................CCCCCCCC...................................C...CCC....C',
+    '...b.CCCoj...CCCC...f.....o..g..........o.....sssss..................CCCCCCCC...................................C...CCC....C',
     'gggggggwglccrglcrgggzg...ggggsggglcccccrgg....sssssggggggggggggggglccccccccccrglcrglcccccrggg.....gggggglcccccrggggggggg....',
     //'ssssssssssssssssssssss...sssssssssssssssss....sssssssssssssssssssssssssssssssssssssssssssssss.........ssssssssssssssssss....', 
   ],grassImage.width / 2,height - grassImage.height / 2 * 27,grassImage.width, grassImage.height);
@@ -637,7 +693,8 @@ function startGame(){
     fill('red');
   }
 
-  if(health < 0){
+  if(health <= 0){
+    health = 0;
     location.reload();
   }
 
@@ -701,7 +758,7 @@ function startGame(){
   }
 
   // if player is touching any of the ground blocks, only then will he able to jump
-  if(mainCharacter.colliding(water) || mainCharacter.colliding(waterLeft) || mainCharacter.colliding(waterRight) || mainCharacter.colliding(ground) || mainCharacter.colliding(waterCont)){
+  if(mainCharacter.colliding(water) || mainCharacter.colliding(waterLeft) || mainCharacter.colliding(waterRight) || mainCharacter.colliding(ground) || mainCharacter.colliding(waterCont) || mainCharacter.colliding(platform) || mainCharacter.colliding(shootingEnemy) || mainCharacter.colliding(enemy)){
     if(kb.presses('up')){
       mainCharacter.ani = 'jumping';
 
@@ -1012,11 +1069,11 @@ function shootFireball(enemy, target) {
   fireball.life = 300; // Disappear after 180 frames (optional)
 
   fireball.addAnimation(
-    'fireball/FB001.png',
-    'fireball/FB002.png',
-    'fireball/FB003.png',
-    'fireball/FB004.png',
-    'fireball/FB005.png',
+    fireballImage1,
+    fireballImage2,
+    fireballImage3,
+    fireballImage4,
+    fireballImage5,
   );
 
   
@@ -1040,3 +1097,4 @@ function enemyShootingLogic(enemy, target) {
 
 
 //https://editor.p5js.org/davidbouchard/sketches/0T3nAhuYp
+//  invisibleGround.visible = false;
