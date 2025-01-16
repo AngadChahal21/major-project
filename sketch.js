@@ -53,7 +53,7 @@ let ground, soil, water, waterLeft, waterRight, waterCont, coins, checkpoint, fl
 let mainCharacter;
 
 //animations
-let playerRun, playerJump, playerAttack1, enemyIdle, enemyRun;
+let playerRun, playerJump, playerAttack1, enemyIdle, enemyRun, shootingEnemyIdle, shootingEnemyAttack;
 
 //tilemaps
 let tilemap, tilemap2;
@@ -95,6 +95,12 @@ let enemies;
 let enemySpeed = 2;
 let enemyGroup;
 
+let shootingEnemy;
+
+let fireballGroup;
+
+let direction;
+let fireballAni;
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -187,6 +193,10 @@ function preload(){
   //enemies
   enemyIdle = loadImage('./Enemies/Mushroom/Idle.png');
   enemyRun = loadImage('./Enemies/Mushroom/Run.png');
+
+  //shooting enemy
+  shootingEnemyIdle = loadImage('./Enemies/Flying eye/Flight.png');
+  shootingEnemyAttack = loadImage('./Enemies/Flying eye/Attack.png');
 
   //Flag
   flagImage = loadImage('./tileset/3Animated objects/Flag.png');
@@ -287,6 +297,13 @@ function setup() {
 
   enemyRun.width = 2400;
   enemyRun.height = 300;
+
+  shootingEnemyIdle.width = 3600;
+  shootingEnemyIdle.height = 450;
+
+  shootingEnemyAttack.width = 3600;
+  shootingEnemyAttack.height = 450;
+
   
 
   //groups 
@@ -430,6 +447,32 @@ function setup() {
   enemy.addAnimation('running', enemyRun,{h:enemyRun.height, w:enemyRun.height, row:0, frames:8, frameDelay:6}); //Running
   enemyGroup.add(enemy);
 
+  //shooting enemies
+  shootingEnemy = new Sprite();
+  shootingEnemy.layer = 1;
+  shootingEnemy.collider = 'dynamic'; 
+
+  shootingEnemy.debug = true;
+  shootingEnemy.w = 90;
+  shootingEnemy.h = 90;
+
+  shootingEnemy.anis.offset.y = -20;
+
+  shootingEnemy.x = 1100;
+  shootingEnemy.y = 300;
+
+  shootingEnemy.addAnimation('idle', shootingEnemyIdle, { h: shootingEnemyIdle.height, w: shootingEnemyIdle.height, row: 0, frames: 8, frameDelay: 8 });
+  shootingEnemy.addAnimation('attack', shootingEnemyAttack, { h: shootingEnemyAttack.height, w: shootingEnemyAttack.height, row: 0, frames: 8, frameDelay: 8 });
+
+
+  // Shooting interval setup
+  shootingEnemy.shootInterval = 60; // Time between shots (frames)
+  shootingEnemy.timer = 0; // Counter to track shooting
+
+
+  // Create Fireball Group
+  fireballGroup = new Group();
+
   
   imageMode(CORNER); 
 
@@ -451,9 +494,9 @@ function setup() {
     '............................................................................................................................',
     '............................................................................................................................',
     '............................................................................................................................',
+    '..........CCCCCCCCCCCCCCCCC.................................................................................................',
     '............................................................................................................................',
-    '............................................CC..............................................................................',
-    '...........................................C..C...............j.............................................................',
+    '..........ggggggggggggggggg.......................C..C...............j......................................................',
     '..................................CCCCCCCCC.................gggg............................................................',
     '..................................gggggggg....g........gg...............................................................CC..',
     '...............................g..............sgggg..............................................................CCC...C..C.',
@@ -582,10 +625,21 @@ function startGame(){
   // Current health (green)
   fill(0, 255, 0);
 
-  if(health === 70){
+  if(health < 70){
     fill('yellow');
   }
 
+  if(health < 50){
+    fill('orange');
+  }
+
+  if(health < 20){
+    fill('red');
+  }
+
+  if(health < 0){
+    location.reload();
+  }
 
   rect(x - barWidth/2, y, map(health, 0, maxHealth, 0, barWidth), barHeight);
   // Border
@@ -704,6 +758,19 @@ function startGame(){
   //     e.changeAnimation('running');
   //   }
   // }
+
+
+  enemyShootingLogic(shootingEnemy, mainCharacter);
+
+  // Update fireball positions and check collisions
+  for (let fireball of fireballGroup) {
+    // Check collision with player
+    if (fireball.overlaps(mainCharacter)) {
+      health -= 30;
+      // Handle collision (e.g., decrease health, restart game, etc.)
+      fireball.remove(); // Remove the fireball on collision
+    }
+  }
 
 
   
@@ -924,6 +991,50 @@ function makeParticles(){
       let color = menuBackground.get(i,j);
       particles.push(new Particle(i + 10, j - 150, color));
     }
+  }
+}
+
+function shootFireball(enemy, target) {
+  // Determine the shooting direction based on player position
+  //let direction = target.x > enemy.x ? 1 : -1; // 1 for right, -1 for left
+  if(enemy.x > target.x){
+    direction = -1;
+  }
+  else{
+    direction = 1;
+  }
+
+
+  // Create a new fireball
+  let fireball = new Sprite(enemy.x, enemy.y, 20, 20); // Fireball starts at the enemy's position
+  
+  fireball.velocity.x = 10 * direction; // Move in the shooting direction
+  fireball.life = 300; // Disappear after 180 frames (optional)
+
+  fireball.addAnimation(
+    'fireball/FB001.png',
+    'fireball/FB002.png',
+    'fireball/FB003.png',
+    'fireball/FB004.png',
+    'fireball/FB005.png',
+  );
+
+  
+
+  fireballGroup.add(fireball); // Add to the group
+  fireball.friction = 0;
+
+
+  //animation(fireballAni, 250, 80);
+
+  
+}
+
+function enemyShootingLogic(enemy, target) {
+  enemy.timer++;
+  if (enemy.timer >= enemy.shootInterval) {
+    shootFireball(enemy, target); // Shoot a fireball towards the player
+    enemy.timer = 0; // Reset timer
   }
 }
 
