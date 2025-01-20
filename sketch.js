@@ -47,9 +47,13 @@ let ground, soil, water, waterLeft, waterRight, waterCont, coins, checkpoint, fl
 
 //Characters
 let mainCharacter;
+let cyborg;
 
 //animations
 let playerRun, playerJump, playerAttack1, enemyIdle, enemyRun, shootingEnemyIdle, shootingEnemyAttack, shootingEnemyDeath;
+
+//cyborg
+let cyborgRun, cyborgJump, cyborgIdle;
 
 //tilemaps
 let tilemap, tilemap2;
@@ -168,6 +172,13 @@ function preload(){
   characterRun = loadImage('./characters/1 Biker/Biker_run.png');
   characterJump = loadImage('./characters/1 Biker/Biker_jump.png');
   characterAttack1 = loadImage('./characters/1 Biker/Biker_attack1.png');
+
+  //cyborg
+  cyborgIdle = loadImage('./characters/3 Cyborg/Cyborg_idle.png');
+  cyborgRun = loadImage('./characters/3 Cyborg/Cyborg_run.png');
+  cyborgJump = loadImage('./characters/3 Cyborg/Cyborg_jump.png');
+
+
 
   //enemies
   enemyIdle = loadImage('./Enemies/Mushroom/Idle.png');
@@ -474,6 +485,39 @@ function setup() {
     playerJump = mainCharacter.addAnimation('jumping', characterJump,{h:characterJump.height, w:characterJump.height, row:0, frames:4, frameDelay:8}); //Jumping
     playerAttack1 = mainCharacter.addAnimation('attacking1', characterAttack1, {h:characterAttack1.height, w:characterAttack1.height, row: 0, frames: 6, frameDelay: 6}); //Basic Attack
 
+
+    // //cyborg
+    // cyborg = new Sprite();  
+    // cyborg.layer = 1;
+    // cyborg.collider = 'dynamic';
+
+    // //collider's shape, offset, and size to adjust hitbox 
+    // //hitbox size
+    // cyborg.w = 90;
+    // cyborg.h = 140; 
+    // // hitbox center offset
+    // cyborg.anis.offset.x = 45;
+    // cyborg.anis.offset.y = -25;
+
+    // cyborg.friction = 10;
+    // cyborg.bounciness = 0;
+    // //mainCharacter.drag.x = 20;
+
+
+    // // for visible hitbox
+    // cyborg.debug = false; 
+  
+
+    // //initial location
+    // cyborg.x = 100;
+    // cyborg.y = 200;
+
+    // //animations 
+    // mainCharacter.addAnimation('idle', characterIdle,{h:characterIdle.height, w:characterIdle.height, row:0, frames:4, frameDelay:8}); //Standing/Idle
+    // playerRun = mainCharacter.addAnimation('running', characterRun,{h:characterRun.height, w:characterRun.height, row:0, frames:6, frameDelay:6}); //Running
+    // playerJump = mainCharacter.addAnimation('jumping', characterJump,{h:characterJump.height, w:characterJump.height, row:0, frames:4, frameDelay:8}); //Jumping
+    // playerAttack1 = mainCharacter.addAnimation('attacking1', characterAttack1, {h:characterAttack1.height, w:characterAttack1.height, row: 0, frames: 6, frameDelay: 6}); //Basic Attack
+
     mainCharacter.ani = 'idle';
     mainCharacter.rotationLock = true;
 
@@ -563,7 +607,7 @@ function setup() {
     ],grassImage.width / 2,height - grassImage.height / 2 * 27,grassImage.width, grassImage.height);
    
 
-    allGroups = [ground, soil, water, waterLeft, waterRight, waterCont, coins, checkpoint, flags, orbs, jumper, enemySpawnPoint, platform, barrier, fireballGroup];
+    allGroups = [ground, soil, water, waterLeft, waterRight, waterCont, coins, checkpoint, flags, orbs, jumper, enemySpawnPoint, platform, fireballGroup];
 
     
 
@@ -575,6 +619,7 @@ function setup() {
 
     //orbs collection
     mainCharacter.overlaps(orbs,(p,o) =>{
+      health+= 10
       o.remove();
       powerUp = true;
     });
@@ -714,6 +759,10 @@ function startGame(){
   rect(x - barWidth/2, y, barWidth, barHeight);
   // Current health (green)
   fill(0, 255, 0);
+
+  if(health > 100){
+    fill('purple');
+  }
 
   if(health < 70){
     fill('yellow');
