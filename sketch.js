@@ -7,24 +7,19 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ------------------------------- VARIABLES AND CONSTANTS --------------------------------------- //
 
-//home menu
-let PARTICLE_SIZE = 15;
-let menuBackground;
-let p;
-let particles = [];
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //game mechanics
-
 //game state
-let GameState = "startGame";
+let gameState = "startGame";
 let mainBackground;
 let layer2X = 0;
 let layer3X = 0;
 let layer4X = 0;
 let layer5X = 0;
 let myFont;
+
+let game = true;
+let showStats = true;
 
 ///spawn point
 respawnX = 100;
@@ -47,13 +42,14 @@ let characterIdle, characterRun, characterJump, characterAttack1;
 let grassW, grassH, waterW, waterH;
 
 //groups 
-let ground, soil, water, waterLeft, waterRight, waterCont, coins, checkpoint, flags, orbs, jumper;
+let ground, soil, water, waterLeft, waterRight, waterCont, coins, checkpoint, flags, orbs, jumper, enemySpawnPointImage;
+
 
 //Characters
 let mainCharacter;
 
 //animations
-let playerRun, playerJump, playerAttack1, enemyIdle, enemyRun, shootingEnemyIdle, shootingEnemyAttack;
+let playerRun, playerJump, playerAttack1, enemyIdle, enemyRun, shootingEnemyIdle, shootingEnemyAttack, shootingEnemyDeath;
 
 //tilemaps
 let tilemap, tilemap2;
@@ -68,7 +64,7 @@ let heartImages = [];
 
 //health
 let health = 100; // Player's current health
-const maxHealth = 100; // Maximum health
+let maxHealth = 100;  
 
 //orb timer
 let powerUp;
@@ -94,6 +90,7 @@ let layer5;
 let enemies;
 let enemySpeed = 2;
 let enemyGroup;
+let lastDamageTime = 0;
 
 
 //shooting enemy
@@ -101,10 +98,16 @@ let shootingEnemy;
 let fireballGroup;
 let direction;
 let fireballAni;
+let shooting = true;
+let fireball;
 
 //dynamic platforms 
+let platforms;
 let platform;
 let platformImage;
+let toggleTime = 4000; // Time limit in milliseconds (2 seconds)
+let lastToggle = 0; // Tracks the last time the direction was toggled
+
 
 
 //fireball
@@ -113,51 +116,15 @@ let fireballImage1, fireballImage2, fireballImage3, fireballImage4, fireballImag
 //barrier
 let barrier;
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-// ------------------------------- CLASSES --------------------------------------------------------- //
+let enemySpawnPoint;
 
 
-//CLASSES
-class Particle{
-  constructor(x, y, color){
-    this.x = x;
-    this. y = y;
-    this.color = color;
-    this.targetX = x;
-    this.targetY = y;
-  }
+let allGroups;
 
-  //mouse interaction
-  update(){
-    //defining vectors 
-    let currentParticle = createVector(this.x, this.y);
-    let mouseParticle = createVector(mouseX, mouseY);
-    let totalForce = createVector(0,0);
+let corner;
 
-    //defining distances
-    let mouseToCurrent = p5.Vector.sub(currentParticle, mouseParticle);
-    let distanceFromMouse = mouseToCurrent.mag();
-
-    //checking for required distance
-    if(distanceFromMouse < 100){
-      let repulsion = map(distanceFromMouse, 100, 0, 1, 5);
-      mouseToCurrent.setMag(repulsion);
-    }
-
-    //adding mouse repulsion effect
-    totalForce.add(mouseToCurrent);
-    this.x += totalForce.x;
-    this.y += totalForce.y; 
-  }
-
-  //display particle image
-  display(){
-    fill(this.color);
-    noStroke;
-    ellipse(this.x, this.y, PARTICLE_SIZE);
-  }
-}
-
+//music
+let bgMusic;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ------------------------------- PRELOADING IMAGES AND FONTS --------------------------------------
@@ -166,8 +133,10 @@ class Particle{
 // PRELOADING
 function preload(){
 
+  //music
+  //bgMusic = loadSound('./Music/bgMusic.mp3');
+
   //backdrops
-  menuBackground = loadImage('./pictures/menu-background.jpeg');
   mainBackground = loadImage('./tileset/2Background/Background.png');
 
   ///parallax backgrounds
@@ -207,6 +176,7 @@ function preload(){
   //shooting enemy
   shootingEnemyIdle = loadImage('./Enemies/Flying eye/Flight.png');
   shootingEnemyAttack = loadImage('./Enemies/Flying eye/Attack.png');
+  shootingEnemyDeath = loadImage('./Enemies/Flying eye/Death.png');
 
   //Flag
   flagImage = loadImage('./tileset/3Animated objects/Flag.png');
@@ -232,6 +202,9 @@ function preload(){
   fireballImage3 = loadImage('./fireball/FB500-3.png');
   fireballImage4 = loadImage('./fireball/FB500-4.png');
   fireballImage5 = loadImage('./fireball/FB500-5.png');
+
+  //
+  enemySpawnPointImage = loadImage('./tileset/1Tiles/enemySpawn.png');
 }
 
 
@@ -244,7 +217,6 @@ function preload(){
 function setup() {
   createCanvas(windowWidth, windowHeight, "pixelated x10");
 
-  makeParticles();
   world.gravity.y = 10;
   allSprites.pixelPerfect = true;
   allSprites.autoCull = false;
@@ -287,9 +259,11 @@ function setup() {
   orbImage.width = 192;
   orbImage.height = 32;
 
+  //jumper power up gem dimensions
   jumperImage.width = 192;
   jumperImage.height = 48;
 
+  //Background layers dimensions
   mainBackground.width = windowWidth;
   mainBackground.height = windowHeight;
 
@@ -305,7 +279,6 @@ function setup() {
   layer5.width = windowWidth;
   layer5.height = windowHeight;
 
-  //heart dimensions
 
   //character dimensions;
   characterIdle.width = 768; characterIdle.height = 192;
@@ -320,269 +293,311 @@ function setup() {
   enemyRun.width = 2400;
   enemyRun.height = 300;
 
+  //shooting enemy 
   shootingEnemyIdle.width = 3600;
   shootingEnemyIdle.height = 450;
 
   shootingEnemyAttack.width = 3600;
   shootingEnemyAttack.height = 450;
 
+  shootingEnemyDeath.width = 1800;
+  shootingEnemyDeath.height = 450;
+
+
+  //fireball attack
   fireballImage1.width = 40; fireballImage1.height = 40;
   fireballImage2.width = 40; fireballImage2.height = 40;
   fireballImage3.width = 40; fireballImage3.height = 40;
   fireballImage4.width = 40; fireballImage4.height = 40;
   fireballImage5.width = 40; fireballImage5.height = 40;
 
-  
+  //spawn point 
+  enemySpawnPointImage.width = 100;
+  enemySpawnPointImage.height = 100;
+
+
 
   //groups 
   //grass
-  ground = new Group();
-  ground.layer = 0;
-  ground.collider = "static";
-  ground.img = grassImage;
-  ground.tile = 'g';
+  if(game === true){
+    ground = new Group();
+    ground.layer = 0;
+    ground.collider = "static";
+    ground.img = grassImage;
+    ground.tile = 'g';
 
-  //checkpoint block
-  checkpoint = new Group();
-  checkpoint.layer = 0;
-  checkpoint.collider = "static";
-  checkpoint.img = checkpointImage;
-  checkpoint.tile = 'z';
 
-  //ground + water  + ground block
-  water = new Group();
-  water.layer = 2;
-  water.collider = 'static';
-  water.img = waterBlockImage;
-  water.tile = 'w';
+    //checkpoint block
+    checkpoint = new Group();
+    checkpoint.layer = 0;
+    checkpoint.collider = "static";
+    checkpoint.img = checkpointImage;
+    checkpoint.tile = 'z';
 
-  //ground + water (left)
-  waterLeft = new Group();
-  waterLeft.layer = 2;
-  waterLeft.collider = 'static';
-  waterLeft.img = waterLeftEdgeImage;
-  waterLeft.tile = 'l';
+    //ground + water  + ground block
+    water = new Group();
+    water.layer = 2;
+    water.collider = 'static';
+    water.img = waterBlockImage;
+    water.tile = 'w';
 
-  //ground + water (right)
-  waterRight = new Group();
-  waterRight.layer = 2;
-  waterRight.collider = 'static';
-  waterRight.img = waterRightEdgeImage;
-  waterRight.tile = 'r';
+    //ground + water (left)
+    waterLeft = new Group();
+    waterLeft.layer = 2;
+    waterLeft.collider = 'static';
+    waterLeft.img = waterLeftEdgeImage;
+    waterLeft.tile = 'l';
 
-  //only water
-  waterCont = new Group();
-  waterCont.layer = 2;
-  waterCont.collider = 'static';
-  waterCont.img = waterContinuousImage;
-  waterCont.tile = 'c';
+    //ground + water (right)
+    waterRight = new Group();
+    waterRight.layer = 2;
+    waterRight.collider = 'static';
+    waterRight.img = waterRightEdgeImage;
+    waterRight.tile = 'r';
 
-  //just soil
-  soil = new Group();
-  soil.layer = 0;
-  soil.collider = 'static';
-  soil.img = soilImage;
-  soil.tile = 's';
+    //only water
+    waterCont = new Group();
+    waterCont.layer = 2;
+    waterCont.collider = 'static';
+    waterCont.img = waterContinuousImage;
+    waterCont.tile = 'c';
 
-  //checkpoint flags
-  flags =  new Group();
-  flags.layer = 2;
-  flags.collider = 'none';
-  flags.spriteSheet = flagImage;
-  flags.addAni({h: 96, w:96, row: 0, frames: 4, frameDelay: 8 });
-  flags.tile = 'f';
+    //just soil
+    soil = new Group();
+    soil.layer = 0;
+    soil.collider = 'static';
+    soil.img = soilImage;
+    soil.tile = 's';
 
-  //coins
-  coins = new Group();
-  coins.collider = 'none';
-  coins.spriteSheet = coinsImage;
-  coins.addAni({h:58, w:48, row: 0, frames: 4, frameDelay: 8});
-  coins.tile = 'C';
+    //checkpoint flags
+    flags =  new Group();
+    flags.layer = 2;
+    flags.collider = 'none';
+    flags.spriteSheet = flagImage;
+    flags.addAni({h: 96, w:96, row: 0, frames: 4, frameDelay: 8 });
+    flags.tile = 'f';
 
-  //orbs (power-up)
-  orbs = new Group();
-  orbs.collider = 'none';
-  orbs.spriteSheet = orbImage;
-  orbs.addAni({h: 32, w: 32, row: 0, frames: 6, frameDelay: 8});
-  orbs.tile = 'o';
+    //coins
+    coins = new Group();
+    coins.collider = 'none';
+    coins.spriteSheet = coinsImage;
+    coins.addAni({h:58, w:48, row: 0, frames: 4, frameDelay: 8});
+    coins.tile = 'C';
 
-  //jumper power-up
-  jumper = new Group();
-  jumper.colldier = 'static';
-  jumper.spriteSheet = jumperImage;
-  jumper.addAni({h: 48, w: 48, row: 0, frames:4, frameDelay: 8});
-  jumper.tile = 'j';
-  jumper.h = 80;
+    //orbs (power-up)
+    orbs = new Group();
+    orbs.collider = 'none';
+    orbs.spriteSheet = orbImage;
+    orbs.addAni({h: 32, w: 32, row: 0, frames: 6, frameDelay: 8});
+    orbs.tile = 'o';
 
-  //platform
-  platform = new Group();
-  platform.collider = 'kinematic';
-  platform.tile = 'p';
-  platform.image = platformImage;
+    //jumper power-up
+    jumper = new Group();
+    jumper.colldier = 'none';
+    jumper.spriteSheet = jumperImage;
+    jumper.addAni({h: 48, w: 48, row: 0, frames:4, frameDelay: 8});
+    jumper.tile = 'j';
+    jumper.h = 80;
 
-  const PLATFORM_COORDS = platform.x;
-  const PLATFORM_RIGHT_LIMIT = PLATFORM_COORDS + 20;
-  const PLATFORM_LEFT_LIMIT = PLATFORM_COORDS - 20;
+    //platform
+    platforms = new Group();
+    platforms.collider = 'kinematic';
+    platforms.layer = 1;
+    
+    platforms.image = platformImage;
+
+    platform = new platforms.Sprite();
+    platform.velocity.x = 2;
+
+    
+
+   
+
+    platform.tile = 'p';
+
+
+    //console.log(platform.x);
+
+    // for(let p of platform){
+    //   if(p.x >= 400){
+    //     p.velocity.x = 0;
+    //     console.log(p.x);
+    //   }
+    // }
+
+
+    //enemy spawn point
+    enemySpawnPoint = new Group();
+    enemySpawnPoint.collider = 'static';
+    enemySpawnPoint.image = enemySpawnPointImage;
+    enemySpawnPoint.tile = 'e';
+
+    
+
+    // //barriers
+    // barrier = new Group();
+    // barrier.visible = false;
+    // barrier.layer = 1;
+    // barrier.tile = 'b';
+    // barrier.collider = 'kinematic';
+    // barrier.image = grassImage;
+
+    //player
+    mainCharacter = new Sprite();  
+    mainCharacter.layer = 1;
+    mainCharacter.collider = 'dynamic';
+
+    //collider's shape, offset, and size to adjust hitbox 
+    //hitbox size
+    mainCharacter.w = 90;
+    mainCharacter.h = 140; 
+    // hitbox center offset
+    mainCharacter.anis.offset.x = 45;
+    mainCharacter.anis.offset.y = -25;
+
+    mainCharacter.friction = 10;
+    mainCharacter.bounciness = 0;
+    //mainCharacter.drag.x = 20;
+
+
+    // for visible hitbox
+    mainCharacter.debug = false; 
   
-  if(platform.x > PLATFORM_RIGHT_LIMIT){
-    platform.velocity.x = -1.5;
-  }
-  if(platform.x < PLATFORM_LEFT_LIMIT){
-    platform.velocity.x = 1.5;
-  }
 
-  else{
-    platform.velocity.x = 1.5;
-  }
+    //initial location
+    mainCharacter.x = 100;
+    mainCharacter.y = 200;
 
-  //barriers
-  barrier = new Group();
-  barrier.visible = false;
-  barrier.tile = 'b';
-  barrier.collider = 'static';
+    //animations 
+    mainCharacter.addAnimation('idle', characterIdle,{h:characterIdle.height, w:characterIdle.height, row:0, frames:4, frameDelay:8}); //Standing/Idle
+    playerRun = mainCharacter.addAnimation('running', characterRun,{h:characterRun.height, w:characterRun.height, row:0, frames:6, frameDelay:6}); //Running
+    playerJump = mainCharacter.addAnimation('jumping', characterJump,{h:characterJump.height, w:characterJump.height, row:0, frames:4, frameDelay:8}); //Jumping
+    playerAttack1 = mainCharacter.addAnimation('attacking1', characterAttack1, {h:characterAttack1.height, w:characterAttack1.height, row: 0, frames: 6, frameDelay: 6}); //Basic Attack
 
-  //player
-  mainCharacter = new Sprite();  
-  mainCharacter.layer = 1;
-  mainCharacter.collider = 'dynamic';
-
-  //collider's shape, offset, and size to adjust hitbox 
-  //hitbox size
-  mainCharacter.w = 90;
-  mainCharacter.h = 140; 
-  // hitbox center offset
-  mainCharacter.anis.offset.x = 45;
-  mainCharacter.anis.offset.y = -25;
-
-  mainCharacter.friction = 10;
-  //mainCharacter.drag.x = 20;
+    mainCharacter.ani = 'idle';
+    mainCharacter.rotationLock = true;
 
 
-  // for visible hitbox
-  mainCharacter.debug = false; 
- 
-
-  //initial location
-  mainCharacter.x = 100;
-  mainCharacter.y = 200;
-
-  //animations 
-  mainCharacter.addAnimation('idle', characterIdle,{h:characterIdle.height, w:characterIdle.height, row:0, frames:4, frameDelay:8}); //Standing/Idle
-  playerRun = mainCharacter.addAnimation('running', characterRun,{h:characterRun.height, w:characterRun.height, row:0, frames:6, frameDelay:6}); //Running
-  playerJump = mainCharacter.addAnimation('jumping', characterJump,{h:characterJump.height, w:characterJump.height, row:0, frames:4, frameDelay:8}); //Jumping
-  playerAttack1 = mainCharacter.addAnimation('attacking1', characterAttack1, {h:characterAttack1.height, w:characterAttack1.height, row: 0, frames: 6, frameDelay: 6}); //Basic Attack
-
-  mainCharacter.ani = 'idle';
-  mainCharacter.rotationLock = true;
+    enemyGroup = new Group();
 
 
-  enemyGroup = new Group();
+    //enemies
+    enemy = new Sprite();
+    enemy.layer = 1;
+    enemy.collider = 'dynamic';
+    enemy.startX = 1000; // Left boundary
+    enemy.endX = 0; // Right boundary
+    enemy.velocity.x = 2; // Initial velocity
+    //enemy.friction = 100;
 
 
-  //enemies
-  enemy = new Sprite();
-  enemy.layer = 1;
-  enemy.collider = 'dynamic';
-  enemy.startX = 1000; // Left boundary
-  enemy.endX = 0; // Right boundary
-  enemy.velocity.x = 2; // Initial velocity
+    //hitbox adjustments
+    enemy.debug = false;
+    enemy.w = 50;
+    enemy.h = 70;
+    enemy.anis.offset.y = -10;
+
+    //initial location
+    enemy.x = 1500;
+    enemy.y = height - 300;
+
+    enemy.addAnimation('idle', enemyIdle,{h:enemyIdle.height, w:enemyIdle.height, row:0, frames:4, frameDelay:8}); //Standing/Idle
+    enemy.addAnimation('running', enemyRun,{h:enemyRun.height, w:enemyRun.height, row:0, frames:8, frameDelay:6}); //Running
+    enemyGroup.add(enemy);
+
+    //shooting enemies
+    shootingEnemy = new Sprite();
+    shootingEnemy.layer = 1;
+    shootingEnemy.collider = 'none'; 
+
+    shootingEnemy.debug = false;
+    shootingEnemy.friction = 10000000000000;   
+    shootingEnemy.w = 130;
+    shootingEnemy.h = 90;
+
+    shootingEnemy.anis.offset.y = -20;
+    shootingEnemy.anis.offset.x = -5;
+
+    shootingEnemy.x = windowWidth;
+    shootingEnemy.y = height/4;
+    
+
+    shootingEnemy.addAnimation('idle', shootingEnemyIdle, { h: shootingEnemyIdle.height, w: shootingEnemyIdle.height, row: 0, frames: 8, frameDelay: 8 });
+    shootingEnemy.addAnimation('attack', shootingEnemyAttack, { h: shootingEnemyAttack.height, w: shootingEnemyAttack.height, row: 0, frames: 8, frameDelay: 8 });
+    shootingEnemy.addAnimation('death', shootingEnemyDeath, {h: shootingEnemyDeath.height, w: shootingEnemyDeath.height, row: 0, frames: 4, frameDelay: 10});
+
+    shootingEnemy.ani = 'attack';
+    // Shooting interval setup
+    shootingEnemy.shootInterval = 60; // Time between shots (frames)
+    shootingEnemy.timer = 0; // Counter to track shooting
 
 
-  //hitbox adjustments
-  enemy.debug = false;
-  enemy.w = 50;
-  enemy.h = 70;
-  enemy.anis.offset.y = -10;
-
-  //initial location
-  enemy.x = 1500;
-  enemy.y = height - 300;
-
-  enemy.addAnimation('idle', enemyIdle,{h:enemyIdle.height, w:enemyIdle.height, row:0, frames:4, frameDelay:8}); //Standing/Idle
-  enemy.addAnimation('running', enemyRun,{h:enemyRun.height, w:enemyRun.height, row:0, frames:8, frameDelay:6}); //Running
-  enemyGroup.add(enemy);
-
-  //shooting enemies
-  shootingEnemy = new Sprite();
-  shootingEnemy.layer = 1;
-  shootingEnemy.collider = 'dynamic'; 
-
-  shootingEnemy.debug = false;
-  shootingEnemy.w = 90;
-  shootingEnemy.h = 90;
-
-  shootingEnemy.anis.offset.y = -20;
-  shootingEnemy.anis.offset.x = -40;
-
-  shootingEnemy.x = 1100;
-  shootingEnemy.y = 300;
-
-  shootingEnemy.addAnimation('idle', shootingEnemyIdle, { h: shootingEnemyIdle.height, w: shootingEnemyIdle.height, row: 0, frames: 8, frameDelay: 8 });
-  shootingEnemy.addAnimation('attack', shootingEnemyAttack, { h: shootingEnemyAttack.height, w: shootingEnemyAttack.height, row: 0, frames: 8, frameDelay: 8 });
+    // Create Fireball Group
+    fireballGroup = new Group();
 
 
-  // Shooting interval setup
-  shootingEnemy.shootInterval = 60; // Time between shots (frames)
-  shootingEnemy.timer = 0; // Counter to track shooting
+    
 
+    
+    imageMode(CORNER); 
 
-  // Create Fireball Group
-  fireballGroup = new Group();
-
+    
   
-  imageMode(CORNER); 
+    //tilemap with no vertical spacing between tiles 
+    tilemap2 = new Tiles([
+      '............................................................................................................................',
+      '............................................................................................................................',
+      '............................................................................................................................',
+      '............................................................................................................................',
+      '............................................................................................................................',
+      '............................................................................................................................',
+      '............................................................................................................................',
+      '..........CCCCCCCCCCCCCCCCC.................................................................................................',
+      '..........geggggggggggggggg.......................C..C......................................................................',
+      '..................................CCCCCCCCC.................gggg............................................................',
+      '..................................gggggggg....g........gg...............................................................CC..',
+      '...............................g..............sgggg..............................................................CCC...C..C.',
+      '.....CCCo...CCCC..jf.........g................sssss..................CCCCCCCC.................p.................C...CCC....C',
+      'gggggggwglccrglcrgggzg...ggggsggglcccccrgg....sssssggggggggggggggglccccccccccrglcrglcccccrggg.....gggggglcccccrggggggggg....',
+      //'ssssssssssssssssssssss...sssssssssssssssss....sssssssssssssssssssssssssssssssssssssssssssssss.........ssssssssssssssssss....', 
+    ],grassImage.width / 2,height - grassImage.height / 2 * 27,grassImage.width, grassImage.height);
+   
 
-  // //tilemap with 1.5x tileset vertical spacing 
-  // tilemap = new Tiles([
-  //   '............................',
-  //   '............................',
-  //   '............................',
-  //   '............................',
-  //   '............................',
-  //   '............................'
-  // ],grassImage.width / 2,height - grassImage.height / 2 * 16,grassImage.width, grassImage.height * 1.5);
- 
-  //tilemap with no vertical spacing between tiles 
-  tilemap2 = new Tiles([
-    '............................................................................................................................',
-    '............................................................................................................................',
-    '............................................................................................................................',
-    '............................................................................................................................',
-    '............................................................................................................................',
-    '............................................................................................................................',
-    '..........CCCCCCCCCCCCCCCCC.................................................................................................',
-    '............................................................................................................................',
-    '..........ggggggggggggggggg.......................C..C...............j......................................................',
-    '..................................CCCCCCCCC.................gggg............................................................',
-    '.....p............................gggggggg....g........gg...............................................................CC..',
-    '...............................g..............sgggg..............................................................CCC...C..C.',
-    '...b.CCCoj...CCCC...f.....o..g..........o.....sssss..................CCCCCCCC...................................C...CCC....C',
-    'gggggggwglccrglcrgggzg...ggggsggglcccccrgg....sssssggggggggggggggglccccccccccrglcrglcccccrggg.....gggggglcccccrggggggggg....',
-    //'ssssssssssssssssssssss...sssssssssssssssss....sssssssssssssssssssssssssssssssssssssssssssssss.........ssssssssssssssssss....', 
-  ],grassImage.width / 2,height - grassImage.height / 2 * 27,grassImage.width, grassImage.height);
+    allGroups = [ground, soil, water, waterLeft, waterRight, waterCont, coins, checkpoint, flags, orbs, jumper, enemySpawnPoint, platform, barrier, fireballGroup];
 
+    
 
-  //coin collection
-  mainCharacter.overlaps(coins,(p,C) =>{
-    C.remove();
-    score++;
-  });
+    //coin collection
+    mainCharacter.overlaps(coins,(p,C) =>{
+      C.remove();
+      score++;
+    });
 
-  //orbs collection
-  mainCharacter.overlaps(orbs,(p,o) =>{
-    o.remove();
-    powerUp = true;
-  });
+    //orbs collection
+    mainCharacter.overlaps(orbs,(p,o) =>{
+      o.remove();
+      powerUp = true;
+    });
 
-  //jumper collection
-  mainCharacter.overlaps(jumper,(p,j) =>{
-    j.remove();
-    jumperPowerUp = true;
-  });
+    //jumper collection
+    mainCharacter.overlaps(jumper,(p,j) =>{
+      j.remove();
+      jumperPowerUp = true;
+    });
+
+   
+
+    // platform.overlaps(barrier,(p,b) =>{
+    //   console.log("Overlap!!!")
+    //   platform.velocity.x *= -1;
+    // });
+
+    
 
   // groundSensor = new Sprite();
   // groundSensor.visible = false; 
   // groundSensor.mass = 0.01;
+}
 }
 
 
@@ -591,11 +606,16 @@ function setup() {
 //DRAW FUNCTION
 
 function draw() {
-  if(GameState === 'startScreen'){
+  if(gameState === 'startScreen'){
     startScreen();
   }
-  if(GameState === 'startGame'){
+  if(gameState === 'startGame'){
     startGame();
+    //bgMusic.loop();
+  }
+
+  if(gameState === 'endScreen'){
+    endScreen();
   }
 }
 
@@ -607,9 +627,16 @@ function startScreen(){
   //   particle.update();
   //   particle.display();
   // }
+  
 }
 
 function startGame(){
+
+  if (millis() - lastToggle > toggleTime) {
+    platform.vel.x *= -1; // Reverse the direction
+    lastToggle = millis(); // Reset the timer
+  }
+
   //background(mainBackground);
 
   //PARALLAX BACKGROUND
@@ -657,17 +684,24 @@ function startGame(){
     layer5X = 0;
   }
 
+
+
+
   textFont(myFont);
   fill('white');
   textSize(30);
-  text('Coins collected: ' + score, width - 350, 50); // coins stat
-  text('Time:' + time, 50, 50); //timer
 
+  
+  text('Coins collected: ' + score, width - 350, 50); // coins stat
+  text('Time:' + time, 50, 50); //timer 
+  
+  
 
   //hearts
   for (let i = 0; i < lives; i++) {
     image(heartImages[i], (width/2 - 100) + i * 70, -10, 70, 95); // Draw hearts spaced apart
   }
+
 
   //HEALTH BAR
   let barWidth = 200; 
@@ -695,7 +729,11 @@ function startGame(){
 
   if(health <= 0){
     health = 0;
-    location.reload();
+    lives--;
+    mainCharacter.x = respawnX;
+    mainCharacter.y = respawnY;
+    health = 100;
+
   }
 
   rect(x - barWidth/2, y, map(health, 0, maxHealth, 0, barWidth), barHeight);
@@ -704,7 +742,8 @@ function startGame(){
   stroke(0);
   
   rect(x - barWidth/2, y, barWidth, barHeight);
-  
+
+
   //orb timer
   if(powerUp){
     if(millis() - orbLastTimeUpdate >= orbTimerDelay){
@@ -779,7 +818,21 @@ function startGame(){
   }
 
   if(mainCharacter.collides(enemy)){
-    health = 70;
+   
+    let currentTime = millis(); // Get the current time in milliseconds
+  
+    // Check if 1 second (1000 ms) has passed since the last damage
+    if (currentTime - lastDamageTime > 1000) {
+      health -= 20; // Deduct health
+      lastDamageTime = currentTime; // Reset the timer
+      console.log(`Player health: ${health}`);
+    }
+  }
+
+  if(mainCharacter.overlaps(shootingEnemy)){
+    shootingEnemy.ani = 'death';
+    shooting = false;
+    shootingEnemy.visible = false;
   }
 
   //resetting spawnpoint after death
@@ -789,10 +842,10 @@ function startGame(){
   }
 
   //resetting stats after death
-  if(lives === 0){
-    lives = 3;
-    score = 0;
-    time = 0;
+  
+
+  if(lives === 2){
+    
   }
 
 
@@ -816,8 +869,9 @@ function startGame(){
   //   }
   // }
 
-
-  enemyShootingLogic(shootingEnemy, mainCharacter);
+  if(shooting){
+    enemyShootingLogic(shootingEnemy, mainCharacter);
+  }
 
   // Update fireball positions and check collisions
   for (let fireball of fireballGroup) {
@@ -850,7 +904,7 @@ function startGame(){
         if(powerUp){
           mainCharacter.vel.x = -6;
           mainCharacter.frameDelay = 2;
-          mainCharacter.friction = 7;
+          //mainCharacter.friction = 7;
         }
 
         //no power-up
@@ -867,7 +921,7 @@ function startGame(){
         if(powerUp){
           mainCharacter.vel.x = -6;
           mainCharacter.frameDelay = 2;
-          mainCharacter.friction = 7;
+          //mainCharacter.friction = 7;
         }
 
         //no power-up
@@ -889,7 +943,7 @@ function startGame(){
         if(powerUp){
           mainCharacter.vel.x = -6;
           mainCharacter.frameDelay = 2;
-          mainCharacter.friction = 7;
+          //mainCharacter.friction = 7;
         }
 
         //no power-up in water
@@ -904,7 +958,7 @@ function startGame(){
         if(powerUp){
           mainCharacter.vel.x = -6;
           mainCharacter.frameDelay = 2;
-          mainCharacter.friction = 7;
+          //mainCharacter.friction = 7;
         }
         else{
           mainCharacter.vel.x = -2.5;
@@ -941,7 +995,7 @@ function startGame(){
         if(powerUp){
           mainCharacter.vel.x = 6;
           mainCharacter.frameDelay = 2;
-          mainCharacter.friction = 7  ;
+          //mainCharacter.friction = 7  ;
         }
 
         //water without power-up
@@ -958,7 +1012,7 @@ function startGame(){
         if(powerUp){
           mainCharacter.vel.x = 6;
           mainCharacter.frameDelay = 2;
-          mainCharacter.friction = 7;
+          //mainCharacter.friction = 7;
         }
 
         //no power-up
@@ -980,7 +1034,7 @@ function startGame(){
         if(powerUp){
           mainCharacter.vel.x = 6;
           mainCharacter.frameDelay = 2;
-          mainCharacter.friction = 7;
+          //mainCharacter.friction = 7;
         }
 
         //no power-up in water without sprint
@@ -996,7 +1050,7 @@ function startGame(){
         if(powerUp){
           mainCharacter.vel.x = 6;
           mainCharacter.frameDelay = 2;
-          mainCharacter.friction = 7;
+          //mainCharacter.friction = 7;
         }
 
         //no power-up on ground without sprint
@@ -1027,13 +1081,19 @@ function startGame(){
     mainCharacter.x  = respawnX;
     mainCharacter.y = respawnY;
     lives--;
+    if(health < 60){
+      health += 30;
+    }
   }
   
   
   if(lives === 0){
-    lives = 3;
-    score = 0;
-    time = 0;
+    
+    allGroups.forEach(group => {
+      group.visible = false; // Hide each group.
+    });
+
+    gameState = 'endScreen';
   }
 
   camera.x = mainCharacter.x + 150;   
@@ -1042,31 +1102,28 @@ function startGame(){
  
 }
 
-function makeParticles(){
-  for(let i = 0; i < height*15; i+=15){
-    for(let j = 0; j < width*15; j+=15){
-      let color = menuBackground.get(i,j);
-      particles.push(new Particle(i + 10, j - 150, color));
-    }
-  }
-}
 
 function shootFireball(enemy, target) {
   // Determine the shooting direction based on player position
   //let direction = target.x > enemy.x ? 1 : -1; // 1 for right, -1 for left
   if(enemy.x > target.x){
     direction = -1;
+    shootingEnemy.mirror.x = true;
   }
   else{
     direction = 1;
+    shootingEnemy.mirror.x = false;
   }
 
 
   // Create a new fireball
-  let fireball = new Sprite(enemy.x, enemy.y, 20, 20); // Fireball starts at the enemy's position
+  fireball = new Sprite(enemy.x, enemy.y, 20, 20); // Fireball starts at the enemy's position
   
-  fireball.velocity.x = 10 * direction; // Move in the shooting direction
+  
+  fireball.velocity.x = 10 * direction ; // Move in the shooting direction
   fireball.life = 300; // Disappear after 180 frames (optional)
+  fireball.bounciness = 0.3;
+
 
   fireball.addAnimation(
     fireballImage1,
@@ -1093,6 +1150,72 @@ function enemyShootingLogic(enemy, target) {
     shootFireball(enemy, target); // Shoot a fireball towards the player
     enemy.timer = 0; // Reset timer
   }
+}
+
+function endScreen(){
+  background(0);
+  //background(mainBackground);
+  // game = false;
+  // rectMode(CORNER);
+  // fill(0,150);
+  // noStroke();
+  // rect(0,0,windowWidth , windowHeight);
+
+  mainCharacter.visible = false;
+  fireball.visible = false;
+  enemy.visible = false;
+  shootingEnemy.visible = false;  
+
+  for (let group of allGroups) {
+    group.visible = false;
+  }
+
+  textFont(myFont);
+  fill('white');
+  textSize(30);
+
+  
+  textAlign(CENTER, CENTER);
+  textSize(55);
+  text("You collected " + score + " coins \n \n Timed Played: " + time + "seconds" , width / 2, height / 2 - 100); 
+  
+  let buttonX = width/2; //x-coordinate of button
+  let buttonY = 3/5 * height + 150; //y-coordinate of button
+
+
+  //hovered
+  if(mouseX < buttonX + 200 && mouseX > buttonX - 200 && mouseY > buttonY - 50 && mouseY < buttonY + 50){
+    stroke(255);
+    //strokeWeight(5);  
+    fill(86, 176, 16);
+    rect(buttonX, buttonY ,300 ,70 ,50);
+    fill(0);
+    textSize(20);
+    //strokeWeight(1);
+    text("Back to Home", buttonX, buttonY);  
+
+    if(mouseIsPressed){
+      location.reload();
+    }
+  }
+
+  //button normal
+  else{
+    //button
+    stroke(255);
+    //strokeWeight(5);
+    fill(116,238,21);
+    rectMode(CENTER);
+    rect(buttonX,buttonY ,300 ,70 ,50); //draw button 
+    
+    //button text
+    fill(0);
+    textSize(20);
+    //strokeWeight(1);
+    text("Back to Home", buttonX, buttonY);
+  }
+
+
 }
 
 
