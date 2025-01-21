@@ -8,6 +8,10 @@
 // - **Abilities**: Actual abilities like fire, ice and flying using power-ups apart from the basic health increasing one.
 
 
+//Some things that you might not  instantly notice 
+// used animation in every single element of the game, except blocks obviously
+// Sound is relative/responsive to the player's location. What I mean is that the fireball shooting sound diminishes as you move away from the shooting enemy
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ------------------------------- VARIABLES AND CONSTANTS --------------------------------------- //
 
@@ -290,7 +294,7 @@ function setup() {
   leftPlatformImage.width = 100; leftPlatformImage.height = 100;
   rightPlatformImage.width = 100; rightPlatformImage.height = 100;
 
-  pointerImage.width = 64; pointerImage.height = 84;
+  pointerImage.width = 84; pointerImage.height = 104;
 
   //tile dimensions
   grassImage.width = 100;
@@ -487,9 +491,11 @@ function setup() {
     //pointer
     pointer = new Group();
     pointer.collider = 'none';
+    pointer.layer = 2;
     pointer.image = pointerImage;
     pointer.tile = 'P';
-    pointer.h = -10;
+    pointer.debug = false;
+    pointer.y = -20;
 
     //orbs (power-up)
     orbs = new Group();
@@ -865,7 +871,7 @@ function startGame(){
   
   //hearts
   for (let i = 0; i < lives; i++) {
-    image(heartImages[i], (width/2 - 100) + i * 70, -10, 70, 95); // Draw hearts spaced apart
+    image(heartImages[i], width/2 - 100 + i * 70, -10, 70, 95); // Draw hearts spaced apart
   }
 
   //HEALTH BAR
