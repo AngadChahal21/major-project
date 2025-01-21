@@ -4,18 +4,26 @@
 // Extra for Experts:
 // - describe what you did to take this project "above and beyond"
 
+
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ------------------------------- VARIABLES AND CONSTANTS --------------------------------------- //
 
 
 //game mechanics
 //game state
-let gameState = "startGame";
+let gameState = "startScreen";
+
+//still backgrounds
 let mainBackground;
+let mainBackgroundBlur;
+
+//parallax layers
 let layer2X = 0;
 let layer3X = 0;
 let layer4X = 0;
 let layer5X = 0;
+
 let myFont;
 
 let game = true;
@@ -42,8 +50,8 @@ let characterIdle, characterRun, characterJump, characterAttack1;
 let grassW, grassH, waterW, waterH;
 
 //groups 
-let ground, soil, water, waterLeft, waterRight, waterCont, coins, checkpoint, flags, orbs, jumper, enemySpawnPointImage;
-
+let ground, soil, water, waterLeft, waterRight, waterCont, coins, checkpoint, flags, orbs, jumper, enemySpawnPointImage, pointer;
+let pointerImage;
 
 //Characters
 let mainCharacter;
@@ -112,6 +120,18 @@ let platformImage;
 let toggleTime = 4000; // Time limit in milliseconds (2 seconds)
 let lastToggle = 0; // Tracks the last time the direction was toggled
 
+//final platform
+let centerPlatform;
+let leftPlatform;
+let rightPlatform;
+
+let centerPlatformImage;
+let rightPlatformImage;
+let leftPlatformImage;
+
+let finalFlag;
+let finalFlagImage;
+
 
 
 //fireball
@@ -129,7 +149,17 @@ let corner;
 
 //music
 let bgMusic;
+let coinMusic;
+let jumpMusic;
+let powerUpMusic;
+let explosionMusic;
+let hurt;
+let cheer;
+let gameOver;
+let button;
+let timerTick;
 
+let soundPlaying = false;
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ------------------------------- PRELOADING IMAGES AND FONTS --------------------------------------
 
@@ -138,11 +168,21 @@ let bgMusic;
 function preload(){
 
   //music
-  //bgMusic = loadSound('./Music/bgMusic.mp3');
+  bgMusic = loadSound('./Music/chiptuneBgMusic.mp3');
+  coinMusic = loadSound('./Music/coin.wav');
+  jumpMusic = loadSound('./Music/jump.wav');
+  powerUpMusic = loadSound('./Music/power_up.wav');
+  explosionMusic = loadSound('./Music/fireball.mp3');
+  hurt = loadSound('./Music/hurt.wav');
+  cheer = loadSound('./Music/woo.mp3');
+  gameOver = loadSound('./Music/game-over.mp3');
+  button = loadSound('./Music/button.mp3');
+  timerTick = loadSound('./Music/clock-ticking.mp3');
 
   //backdrops
   mainBackground = loadImage('./tileset/2Background/Background.png');
-
+  mainBackgroundBlur = loadImage('./tileset/2Background/Background.png');
+  
   ///parallax backgrounds
   layer1 = loadImage('./tileset/2Background/Layers/1.png');
   layer2 = loadImage('./tileset/2Background/Layers/2.png');
@@ -191,9 +231,17 @@ function preload(){
 
   //Flag
   flagImage = loadImage('./tileset/3Animated objects/Flag.png');
+  finalFlagImage = loadImage('./tileset/3Animated objects/Flag.png');
  
   //font
   myFont = loadFont('./PolygonPartyFont.ttf');
+
+  pointerImage = loadImage('./tileset/4Objects/Pointers/1.png');
+
+  //final platform
+  centerPlatformImage = loadImage('./tileset/1Tiles/Tile_33.png');
+  leftPlatformImage = loadImage('./tileset/1Tiles/Tile_32.png');
+  rightPlatformImage = loadImage('./tileset/1Tiles/Tile_34.png');
 
   //heart image
   heartImage = loadImage('./Images/heart.png');
@@ -228,9 +276,19 @@ function preload(){
 function setup() {
   createCanvas(windowWidth, windowHeight, "pixelated x10");
 
+
+  
+
   world.gravity.y = 10;
   allSprites.pixelPerfect = true;
   allSprites.autoCull = false;
+
+  //final platforms
+  centerPlatformImage.width = 100; centerPlatformImage.height = 100;
+  leftPlatformImage.width = 100; leftPlatformImage.height = 100;
+  rightPlatformImage.width = 100; rightPlatformImage.height = 100;
+
+  pointerImage.width = 64; pointerImage.height = 84;
 
   //tile dimensions
   grassImage.width = 100;
@@ -326,6 +384,9 @@ function setup() {
   enemySpawnPointImage.width = 100;
   enemySpawnPointImage.height = 100;
 
+  mainBackgroundBlur.filter(BLUR, 3);
+
+
 
 
   //groups 
@@ -336,6 +397,24 @@ function setup() {
     ground.collider = "static";
     ground.img = grassImage;
     ground.tile = 'g';
+
+    centerPlatform = new Group();
+    centerPlatform.layer = 0;
+    centerPlatform.collider = 'static';
+    centerPlatform.img = centerPlatformImage;
+    centerPlatform.tile = 'F';
+
+    rightPlatform = new Group();
+    rightPlatform.layer = 0;
+    rightPlatform.collider = 'static';
+    rightPlatform.img = rightPlatformImage;
+    rightPlatform.tile = 'R';
+
+    leftPlatform = new Group();
+    leftPlatform.layer = 0;
+    leftPlatform.collider = 'static';
+    leftPlatform.img = leftPlatformImage;
+    leftPlatform.tile = 'L';
 
 
     //checkpoint block
@@ -388,12 +467,27 @@ function setup() {
     flags.addAni({h: 96, w:96, row: 0, frames: 4, frameDelay: 8 });
     flags.tile = 'f';
 
+    finalFlag=  new Group();
+    finalFlag.layer = 2;
+    finalFlag.collider = 'none';
+    finalFlag.spriteSheet = flagImage;
+    finalFlag.addAni({h: 96, w:96, row: 0, frames: 4, frameDelay: 8 });
+    finalFlag.tile = 'E';
+
+
     //coins
     coins = new Group();
     coins.collider = 'none';
     coins.spriteSheet = coinsImage;
     coins.addAni({h:58, w:48, row: 0, frames: 4, frameDelay: 8});
     coins.tile = 'C';
+
+    //pointer
+    pointer = new Group();
+    pointer.collider = 'none';
+    pointer.image = pointerImage;
+    pointer.tile = 'P';
+    pointer.h = -10;
 
     //orbs (power-up)
     orbs = new Group();
@@ -589,47 +683,56 @@ function setup() {
   
     //tilemap with no vertical spacing between tiles 
     tilemap2 = new Tiles([
-      '............................................................................................................................',
-      '............................................................................................................................',
-      '............................................................................................................................',
-      '............................................................................................................................',
-      '............................................................................................................................',
-      '............................................................................................................................',
-      '............................................................................................................................',
-      '..........CCCCCCCCCCCCCCCCC.................................................................................................',
-      '..........geggggggggggggggg.......................C..C......................................................................',
-      '..................................CCCCCCCCC.................gggg............................................................',
-      '..................................gggggggg....g........gg...............................................................CC..',
-      '...............................g..............sgggg..............................................................CCC...C..C.',
-      '.....CCCo...CCCC..jf.........g................sssss..................CCCCCCCC.................p.................C...CCC....C',
-      'gggggggwglccrglcrgggzg...ggggsggglcccccrgg....sssssggggggggggggggglccccccccccrglcrglcccccrggg.....gggggglcccccrggggggggg....',
+      '..........................................................................................................................................',
+      '..........................................................................................................................................',
+      '..........................................................................................................................................',
+      '..........................................................................................................................................',
+      '..........................................................................................................................................',
+      '..........................................................................................................................................',
+      '..........................................................................................................................................',
+      '..........CCCCCCCCCCCCCCCCC...............................................................................................................',
+      '..........geggggggggggggggg.......................C..C....................................................................................',
+      '..................................CCCCCCCCC.................gggg..........................................................................',
+      '..................................gggggggg....g........gg...............................................................CC................',
+      '...............................g..............sgggg..............................................................CCC...C..C...............',
+      '.....CCCo...CCCC..jf.........g................sssss..................CCCCCCCC................p..................C...CCCP...C....E..........',
+      'gggggggwglccrglcrgggzg...ggggsggglcccccrgg....sssssggggggggggggggglccccccccccrglcrglcccccrggg.....gggggglcccccrggggggggg...LFFFFR..........',
       //'ssssssssssssssssssssss...sssssssssssssssss....sssssssssssssssssssssssssssssssssssssssssssssss.........ssssssssssssssssss....', 
     ],grassImage.width / 2,height - grassImage.height / 2 * 27,grassImage.width, grassImage.height);
    
 
-    allGroups = [ground, soil, water, waterLeft, waterRight, waterCont, coins, checkpoint, flags, orbs, jumper, enemySpawnPoint, platform, fireballGroup];
+    allGroups = [ground, soil, water, waterLeft, waterRight, waterCont, coins, checkpoint, flags, orbs, jumper, enemySpawnPoint, platform, fireballGroup, leftPlatform, rightPlatform, centerPlatform, pointer];
 
     
 
     //coin collection
     mainCharacter.overlaps(coins,(p,C) =>{
+      coinMusic.setVolume(0.1);
+      coinMusic.play();
       C.remove();
       score++;
     });
 
     //orbs collection
     mainCharacter.overlaps(orbs,(p,o) =>{
-      health+= 10
+      powerUpMusic.setVolume(0.2);
+      powerUpMusic.play();
+      health+= 10;
       o.remove();
       powerUp = true;
     });
 
     //jumper collection
     mainCharacter.overlaps(jumper,(p,j) =>{
+      powerUpMusic.setVolume(0.2);
+      powerUpMusic.play();
       j.remove();
       jumperPowerUp = true;
     });
 
+    mainCharacter.overlaps(finalFlag,(p,E) =>{
+      gameState = 'endScreen';
+    });
    
 
     // platform.overlaps(barrier,(p,b) =>{
@@ -654,9 +757,20 @@ function draw() {
   if(gameState === 'startScreen'){
     startScreen();
   }
+
+  if(gameState === 'instructions'){
+    instructions();
+  }
+
   if(gameState === 'startGame'){
+    allGroups.forEach(group => {
+      group.visible = true; // Hide each group.
+    });
+    mainCharacter.visible = true;
+    enemy.visible = true;
+    shootingEnemy.visible = true;
     startGame();
-    //bgMusic.loop();
+    
   }
 
   if(gameState === 'endScreen'){
@@ -665,17 +779,95 @@ function draw() {
 }
 
 function startScreen(){
-  // rect(0, 0, width * 2, height * 2);
-  
-  // background(menuBackground);
-  // for(let particle of particles){
-  //   particle.update();
-  //   particle.display();
-  // }
-  
+
+  allGroups.forEach(group => {
+    group.visible = false; // Hide each group.
+  });
+  mainCharacter.visible = false;
+  enemy.visible = false;
+  shootingEnemy.visible = false;
+
+  let buttonX = width/2; //x-coordinate of button
+  let buttonY = 3/5 * height; //y-coordinate of button
+  background(mainBackgroundBlur);
+ 
+
+  let fontSize = map(width, 0, 700, 10, 65); // calculating responsive font size
+
+  //Title text
+  fill(255);
+  textFont(myFont);
+  textAlign(CENTER, CENTER);
+  textSize(fontSize);
+  text("Swamp Mania", width / 2, height / 2 - 100); 
+  text("Swamp Mania", width / 2, height / 2 - 100); 
+
+  //button hovered
+  if(mouseX < buttonX + 225 && mouseX > buttonX - 225 && mouseY > buttonY - 55 && mouseY < buttonY + 55){
+    fill(255);
+    rectMode(CENTER); 
+    rect(buttonX, buttonY ,450 ,110 ,80);
+    fill(0);
+    textSize(30);
+    text("Play", buttonX, buttonY);  
+
+    if(mouseIsPressed){
+      button.play();
+      gameState = "startGame";
+      bgMusic.loop();
+      bgMusic.setVolume(0.1);
+    }
+  }
+
+  //button normal
+  else{
+    //button
+    fill("black");
+    rectMode(CENTER);
+    rect(buttonX,buttonY ,450 ,100 ,80); //draw button 
+    
+    //button text
+    fill("white");
+    textSize(30);
+    text("Play", buttonX, buttonY);
+  }
+
+
+  //2nd button hovered
+  if(mouseX < buttonX + 150 && mouseX > buttonX - 150 && mouseY > buttonY + 150 - 35 && mouseY < buttonY + 150 + 35){
+    fill(255);
+    rectMode(CENTER); 
+    rect(buttonX, buttonY + 150 ,300 ,70 ,50);
+    fill(0);
+    textSize(20);
+    text("How to play?", buttonX, buttonY + 150);  
+
+    if(mouseIsPressed){
+      button.play();
+      gameState = "instructions";
+    }
+  }
+
+  //2nd button normal
+  else{
+    //button
+    fill("black");
+    rectMode(CENTER);
+    rect(buttonX,buttonY + 150 ,300 ,70 ,50); //draw button 
+    
+    //button text
+    fill("white");
+    textSize(20);
+    text("How to play?", buttonX, buttonY + 150);
+  }
+
+  rectMode(CORNER);
+  textAlign(LEFT);
 }
 
 function startGame(){
+
+  
 
   if (millis() - lastToggle > toggleTime) {
     platform.vel.x *= -1; // Reverse the direction
@@ -801,9 +993,12 @@ function startGame(){
     }
 
     if(orbTime < 6){
+      timerTick.setVolume(1);
+      timerTick.play();
       fill('red');
     }
     else{
+      timerTick.stop();
       fill('white');
 
     }
@@ -824,9 +1019,15 @@ function startGame(){
     }
 
     if(jumpTime < 11){
+      if(soundPlaying === false){
+        timerTick.setVolume(1);
+        timerTick.play();
+        soundPlaying = true;
+      }
       fill('red');
     }
     else{
+      timerTick.stop();
       fill('white');
 
     }
@@ -848,6 +1049,13 @@ function startGame(){
   // if player is touching any of the ground blocks, only then will he able to jump
   if(mainCharacter.colliding(water) || mainCharacter.colliding(waterLeft) || mainCharacter.colliding(waterRight) || mainCharacter.colliding(ground) || mainCharacter.colliding(waterCont) || mainCharacter.colliding(platform) || mainCharacter.colliding(shootingEnemy) || mainCharacter.colliding(enemy)){
     if(kb.presses('up')){
+      jumpMusic.setVolume(0.2);
+      jumpMusic.play();
+      let random = Math.random();
+      if(random < 0.4){
+        cheer.setVolume(0.1);
+        cheer.play();
+      }
       mainCharacter.ani = 'jumping';
 
       if(jumperPowerUp){
@@ -872,6 +1080,7 @@ function startGame(){
   
     // Check if 1 second (1000 ms) has passed since the last damage
     if (currentTime - lastDamageTime > 1000) {
+      hurt.play();
       health -= 20; // Deduct health
       lastDamageTime = currentTime; // Reset the timer
       console.log(`Player health: ${health}`);
@@ -926,6 +1135,7 @@ function startGame(){
   for (let fireball of fireballGroup) {
     // Check collision with player
     if (fireball.overlaps(mainCharacter)) {
+      hurt.play();
       health -= 30;
       // Handle collision (e.g., decrease health, restart game, etc.)
       fireball.remove(); // Remove the fireball on collision
@@ -1141,7 +1351,8 @@ function startGame(){
     allGroups.forEach(group => {
       group.visible = false; // Hide each group.
     });
-
+    gameOver.setVolume(0.1);
+    gameOver.play();
     gameState = 'endScreen';
   }
 
@@ -1164,9 +1375,19 @@ function shootFireball(enemy, target) {
     shootingEnemy.mirror.x = false;
   }
 
+  let distance = dist(target.x, target.y, enemy.x, enemy.y);
+
+  // Define a maximum range for the sound to fade out
+  let maxRange = 3000;
+  let volume = map(distance, 0, maxRange, 1, 0);
+  volume = constrain(volume, 0, 1); // Ensure volume stays between 0 and 1
+  
+
 
   // Create a new fireball
   fireball = new Sprite(enemy.x, enemy.y, 20, 20); // Fireball starts at the enemy's position
+  explosionMusic.setVolume(volume);
+  explosionMusic.play();
   
   
   fireball.velocity.x = 10 * direction ; // Move in the shooting direction
@@ -1202,6 +1423,8 @@ function enemyShootingLogic(enemy, target) {
 }
 
 function endScreen(){
+  bgMusic.stop();
+  
   background(0);
   //background(mainBackground);
   // game = false;
@@ -1220,12 +1443,16 @@ function endScreen(){
   }
 
   textFont(myFont);
-  fill('white');
-  textSize(30);
+  
+  
 
   
   textAlign(CENTER, CENTER);
+  textSize(90);
+  fill('red');
+  text("Game Over" , width / 2, height / 2 - 300); 
   textSize(55);
+  fill('white');
   text("You collected " + score + " coins \n \n Timed Played: " + time + "seconds" , width / 2, height / 2 - 100); 
   
   let buttonX = width/2; //x-coordinate of button
@@ -1244,6 +1471,7 @@ function endScreen(){
     text("Back to Home", buttonX, buttonY);  
 
     if(mouseIsPressed){
+      button.play();
       location.reload();
     }
   }
@@ -1264,6 +1492,10 @@ function endScreen(){
     text("Back to Home", buttonX, buttonY);
   }
 
+
+}
+
+function instructions(){
 
 }
 
