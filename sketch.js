@@ -1,9 +1,11 @@
 // 2d platformer game 
-// 
-// Date:
-// Extra for Experts:
-// - describe what you did to take this project "above and beyond"
-
+// Angadveer Chahal
+// All needs-to-have have been accomplished
+//I'm listing the nice to have that have been implemented
+// - **Advanced Movement**: like sprinting, sliding, wall jumping(dashing), picking up objects, etc.
+// - **Dynamic Platforms**: with rotation, horizontal and vertical movement to make the game more challenging.
+// - **Parallax effect**: to create more depth in the game 
+// - **Abilities**: Actual abilities like fire, ice and flying using power-ups apart from the basic health increasing one.
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -26,8 +28,9 @@ let layer5X = 0;
 
 let myFont;
 
+//booleans
 let game = true;
-let showStats = true;
+let gameComplete = false;
 
 ///spawn point
 respawnX = 100;
@@ -118,7 +121,7 @@ let platforms;
 let platform;
 let platformImage;
 let toggleTime = 4000; // Time limit in milliseconds (2 seconds)
-let lastToggle = 0; // Tracks the last time the direction was toggled
+let lastToggle = 0; 
 
 //final platform
 let centerPlatform;
@@ -137,8 +140,7 @@ let finalFlagImage;
 //fireball
 let fireballImage1, fireballImage2, fireballImage3, fireballImage4, fireballImage5;
 
-//barrier
-let barrier;
+
 
 let enemySpawnPoint;
 
@@ -531,44 +533,27 @@ function setup() {
     // }
 
 
-    //enemy spawn point
+    //enemy spawn point (not used anymore, but can be useful in the future, for further improvements in the game)
     enemySpawnPoint = new Group();
     enemySpawnPoint.collider = 'static';
     enemySpawnPoint.image = enemySpawnPointImage;
     enemySpawnPoint.tile = 'e';
 
-    
-
-    // //barriers
-    // barrier = new Group();
-    // barrier.visible = false;
-    // barrier.layer = 1;
-    // barrier.tile = 'b';
-    // barrier.collider = 'kinematic';
-    // barrier.image = grassImage;
 
     //player
     mainCharacter = new Sprite();  
     mainCharacter.layer = 1;
     mainCharacter.collider = 'dynamic';
-
     //collider's shape, offset, and size to adjust hitbox 
-    //hitbox size
     mainCharacter.w = 90;
     mainCharacter.h = 140; 
     // hitbox center offset
     mainCharacter.anis.offset.x = 45;
     mainCharacter.anis.offset.y = -25;
-
     mainCharacter.friction = 10;
     mainCharacter.bounciness = 0;
-    //mainCharacter.drag.x = 20;
-
-
     // for visible hitbox
     mainCharacter.debug = false; 
-  
-
     //initial location
     mainCharacter.x = 100;
     mainCharacter.y = 200;
@@ -579,42 +564,8 @@ function setup() {
     playerJump = mainCharacter.addAnimation('jumping', characterJump,{h:characterJump.height, w:characterJump.height, row:0, frames:4, frameDelay:8}); //Jumping
     playerAttack1 = mainCharacter.addAnimation('attacking1', characterAttack1, {h:characterAttack1.height, w:characterAttack1.height, row: 0, frames: 6, frameDelay: 6}); //Basic Attack
 
-
-    // //cyborg
-    // cyborg = new Sprite();  
-    // cyborg.layer = 1;
-    // cyborg.collider = 'dynamic';
-
-    // //collider's shape, offset, and size to adjust hitbox 
-    // //hitbox size
-    // cyborg.w = 90;
-    // cyborg.h = 140; 
-    // // hitbox center offset
-    // cyborg.anis.offset.x = 45;
-    // cyborg.anis.offset.y = -25;
-
-    // cyborg.friction = 10;
-    // cyborg.bounciness = 0;
-    // //mainCharacter.drag.x = 20;
-
-
-    // // for visible hitbox
-    // cyborg.debug = false; 
-  
-
-    // //initial location
-    // cyborg.x = 100;
-    // cyborg.y = 200;
-
-    // //animations 
-    // mainCharacter.addAnimation('idle', characterIdle,{h:characterIdle.height, w:characterIdle.height, row:0, frames:4, frameDelay:8}); //Standing/Idle
-    // playerRun = mainCharacter.addAnimation('running', characterRun,{h:characterRun.height, w:characterRun.height, row:0, frames:6, frameDelay:6}); //Running
-    // playerJump = mainCharacter.addAnimation('jumping', characterJump,{h:characterJump.height, w:characterJump.height, row:0, frames:4, frameDelay:8}); //Jumping
-    // playerAttack1 = mainCharacter.addAnimation('attacking1', characterAttack1, {h:characterAttack1.height, w:characterAttack1.height, row: 0, frames: 6, frameDelay: 6}); //Basic Attack
-
     mainCharacter.ani = 'idle';
     mainCharacter.rotationLock = true;
-
 
     enemyGroup = new Group();
 
@@ -626,9 +577,7 @@ function setup() {
     enemy.startX = 1000; // Left boundary
     enemy.endX = 0; // Right boundary
     enemy.velocity.x = 2; // Initial velocity
-    //enemy.friction = 100;
-
-
+    
     //hitbox adjustments
     enemy.debug = false;
     enemy.w = 50;
@@ -666,20 +615,16 @@ function setup() {
 
     shootingEnemy.ani = 'attack';
     // Shooting interval setup
-    shootingEnemy.shootInterval = 60; // Time between shots (frames)
-    shootingEnemy.timer = 0; // Counter to track shooting
+    shootingEnemy.shootInterval = 60; 
+    shootingEnemy.timer = 0; 
 
 
     // Create Fireball Group
     fireballGroup = new Group();
 
 
-    
-
-    
     imageMode(CORNER); 
 
-    
   
     //tilemap with no vertical spacing between tiles 
     tilemap2 = new Tiles([
@@ -701,10 +646,10 @@ function setup() {
     ],grassImage.width / 2,height - grassImage.height / 2 * 27,grassImage.width, grassImage.height);
    
 
-    allGroups = [ground, soil, water, waterLeft, waterRight, waterCont, coins, checkpoint, flags, orbs, jumper, enemySpawnPoint, platform, fireballGroup, leftPlatform, rightPlatform, centerPlatform, pointer];
+    //array of all groups
+    allGroups = [ground, soil, water, waterLeft, waterRight, waterCont, coins, checkpoint, flags, orbs, jumper, enemySpawnPoint, platform, fireballGroup, leftPlatform, rightPlatform, centerPlatform, pointer, finalFlag];
 
-    
-
+  
     //coin collection
     mainCharacter.overlaps(coins,(p,C) =>{
       coinMusic.setVolume(0.1);
@@ -731,25 +676,12 @@ function setup() {
     });
 
     mainCharacter.overlaps(finalFlag,(p,E) =>{
+      gameComplete = true;
       gameState = 'endScreen';
     });
-   
 
-    // platform.overlaps(barrier,(p,b) =>{
-    //   console.log("Overlap!!!")
-    //   platform.velocity.x *= -1;
-    // });
-
-    
-
-  // groundSensor = new Sprite();
-  // groundSensor.visible = false; 
-  // groundSensor.mass = 0.01;
+  }
 }
-}
-
-
-
 
 //DRAW FUNCTION
 
@@ -766,6 +698,8 @@ function draw() {
     allGroups.forEach(group => {
       group.visible = true; // Hide each group.
     });
+
+    //hide sprites
     mainCharacter.visible = true;
     enemy.visible = true;
     shootingEnemy.visible = true;
@@ -867,17 +801,14 @@ function startScreen(){
 
 function startGame(){
 
-  
-
+  //setting limits for dynamic platform
   if (millis() - lastToggle > toggleTime) {
-    platform.vel.x *= -1; // Reverse the direction
-    lastToggle = millis(); // Reset the timer
+    platform.vel.x *= -1; 
+    lastToggle = millis(); 
   }
 
-  //background(mainBackground);
-
+  
   //PARALLAX BACKGROUND
-
   //layer 1
   background(layer1);
 
@@ -923,22 +854,19 @@ function startGame(){
 
 
 
+  //STATS BAR
 
   textFont(myFont);
   fill('white');
   textSize(30);
 
-  
   text('Coins collected: ' + score, width - 350, 50); // coins stat
   text('Time:' + time, 50, 50); //timer 
   
-  
-
   //hearts
   for (let i = 0; i < lives; i++) {
     image(heartImages[i], (width/2 - 100) + i * 70, -10, 70, 95); // Draw hearts spaced apart
   }
-
 
   //HEALTH BAR
   let barWidth = 200; 
@@ -1087,11 +1015,11 @@ function startGame(){
     }
   }
 
-  if(mainCharacter.overlaps(shootingEnemy)){
-    shootingEnemy.ani = 'death';
-    shooting = false;
-    shootingEnemy.visible = false;
-  }
+  // if(mainCharacter.overlaps(shootingEnemy)){
+  //   shootingEnemy.ani = 'death';
+  //   shooting = false;
+  //   shootingEnemy.visible = false;
+  // }
 
   //resetting spawnpoint after death
   if(lives === 1){
@@ -1099,34 +1027,11 @@ function startGame(){
     respawnY = 200;
   }
 
-  //resetting stats after death
-  
-
-  if(lives === 2){
-    
-  }
-
-
   enemy.velocity.x = -1;
   enemy.mirror.x = true;
 
-  // for (let e of enemyGroup) {
-  //   // Reverse direction at boundaries
-  //   if (e.x >= e.endX || e.x <= e.startX) {
-  //     e.velocity.x *= -1; // Reverse direction
-  
-  //     // Flip sprite horizontally when direction changes
-  //     e.mirror.x *= -1;
-  //   }
-  
-  //   // Switch to 'idle' animation if the enemy stops (optional)
-  //   if (e.velocity.x === 0) {
-  //     e.changeAnimation('idle');
-  //   } else {
-  //     e.changeAnimation('running');
-  //   }
-  // }
 
+  //projectile shooting enemy logic
   if(shooting){
     enemyShootingLogic(shootingEnemy, mainCharacter);
   }
@@ -1137,7 +1042,6 @@ function startGame(){
     if (fireball.overlaps(mainCharacter)) {
       hurt.play();
       health -= 30;
-      // Handle collision (e.g., decrease health, restart game, etc.)
       fireball.remove(); // Remove the fireball on collision
     }
   }
@@ -1321,16 +1225,12 @@ function startGame(){
   }
 
 
-  //attack 1
-  else if(kb.pressing('k')){
-    mainCharacter.ani = 'attacking1';
-  }
-
-  
+  //idle 
   else{
     mainCharacter.ani = 'idle';
   }
 
+  //to optimize parallax
   if(mainCharacter.velocity.x === 0){
     moving = false;
   }
@@ -1364,8 +1264,8 @@ function startGame(){
 
 
 function shootFireball(enemy, target) {
-  // Determine the shooting direction based on player position
-  //let direction = target.x > enemy.x ? 1 : -1; // 1 for right, -1 for left
+
+  //tracking location/direction
   if(enemy.x > target.x){
     direction = -1;
     shootingEnemy.mirror.x = true;
@@ -1375,23 +1275,20 @@ function shootFireball(enemy, target) {
     shootingEnemy.mirror.x = false;
   }
 
+  //calculation loudness/softness of fireball sound depending on distance from the enemy
   let distance = dist(target.x, target.y, enemy.x, enemy.y);
-
-  // Define a maximum range for the sound to fade out
   let maxRange = 3000;
   let volume = map(distance, 0, maxRange, 1, 0);
-  volume = constrain(volume, 0, 1); // Ensure volume stays between 0 and 1
+  volume = constrain(volume, 0, 1); 
   
-
-
   // Create a new fireball
-  fireball = new Sprite(enemy.x, enemy.y, 20, 20); // Fireball starts at the enemy's position
+  fireball = new Sprite(enemy.x, enemy.y, 20, 20); 
   explosionMusic.setVolume(volume);
   explosionMusic.play();
   
   
-  fireball.velocity.x = 10 * direction ; // Move in the shooting direction
-  fireball.life = 300; // Disappear after 180 frames (optional)
+  fireball.velocity.x = 10 * direction ; 
+  fireball.life = 300; 
   fireball.bounciness = 0.3;
 
 
@@ -1404,15 +1301,11 @@ function shootFireball(enemy, target) {
   );
 
   
-
   fireballGroup.add(fireball); // Add to the group
   fireball.friction = 0;
 
-
-  //animation(fireballAni, 250, 80);
-
-  
 }
+
 
 function enemyShootingLogic(enemy, target) {
   enemy.timer++;
@@ -1422,16 +1315,13 @@ function enemyShootingLogic(enemy, target) {
   }
 }
 
+
+//ENDSCREEN
 function endScreen(){
   bgMusic.stop();
   
   background(0);
-  //background(mainBackground);
-  // game = false;
-  // rectMode(CORNER);
-  // fill(0,150);
-  // noStroke();
-  // rect(0,0,windowWidth , windowHeight);
+  
 
   mainCharacter.visible = false;
   fireball.visible = false;
@@ -1445,12 +1335,16 @@ function endScreen(){
   textFont(myFont);
   
   
-
-  
   textAlign(CENTER, CENTER);
   textSize(90);
-  fill('red');
-  text("Game Over" , width / 2, height / 2 - 300); 
+  if(gameComplete){
+    fill('white');
+    text("Game Completed!" , width / 2, height / 2 - 300);
+  }
+  else{
+    fill('red');
+    text("Game Over" , width / 2, height / 2 - 300); 
+  }
   textSize(55);
   fill('white');
   text("You collected " + score + " coins \n \n Timed Played: " + time + "seconds" , width / 2, height / 2 - 100); 
@@ -1495,10 +1389,49 @@ function endScreen(){
 
 }
 
+
+//INSTRUCTIONS
 function instructions(){
+  background(mainBackgroundBlur);
+  textSize(55);
+  fill('White');
+  textFont(myFont);
+  textAlign(LEFT);
+  text('Controls: \n W for jump \n A for moving left \n D for moving right \n Hold shift to sprint', 100, 100);
+  text('2 power ups: Jump(45s) & Speed(25s) \n 2 enemies: patrolling mushroom & fireball shooting bat \n 3 lives/hearts with a \n health bar below the hearts for each life', 100, height/2);
+
+  let buttonX = width/2; //x-coordinate of button
+  let buttonY = 4/5 * height; //y-coordinate of button
+
+  
+  textAlign(CENTER);
+
+  //button hovered
+  if(mouseX < buttonX + 150 && mouseX > buttonX - 150 && mouseY > buttonY + 150 - 35 && mouseY < buttonY + 150 + 35){
+    fill(255);
+    rectMode(CENTER); 
+    rect(buttonX, buttonY + 150 ,300 ,70 ,50);
+    fill(0);
+    textSize(20);
+    
+    text("Back", buttonX, buttonY + 150);  
+
+    if(mouseIsPressed){
+      gameState = 'startScreen';
+    }
+  }
+
+  //button normal
+  else{
+    //button
+    fill("black");
+    rectMode(CENTER);
+    rect(buttonX,buttonY + 150 ,300 ,70 ,50); //draw button 
+    
+    //button text
+    fill("white");
+    textSize(20);
+    text("Back", buttonX, buttonY + 150);
+  }
 
 }
-
-
-//https://editor.p5js.org/davidbouchard/sketches/0T3nAhuYp
-//  invisibleGround.visible = false;
